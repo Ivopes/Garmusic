@@ -1,0 +1,3 @@
+[submodule "Garmusic/ClientApp"]
+	path = Garmusic/ClientApp
+	url = https://github.com/Ivopes/WEB-BAK.git
