@@ -1,6 +1,6 @@
 using System;
 
-namespace API_BAK.Models
+namespace Garmusic.Models
 {
     public class WeatherForecast
     {

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using API_BAK.Models;
+using Garmusic.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 
-namespace API_BAK.Controllers
+namespace Garmusic.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

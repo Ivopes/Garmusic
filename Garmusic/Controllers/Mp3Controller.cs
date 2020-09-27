@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API_BAK.Controllers
+namespace Garmusic.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

@@ -6,12 +6,13 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using API_BAK.Models;
+using Garmusic.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Garmusic.Utilities;
 
-namespace API_BAK.Controllers
+namespace Garmusic.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -29,7 +30,17 @@ namespace API_BAK.Controllers
             {
                 return BadRequest("Invalid client request");
             }
-            if(_dbContext.Accounts.Any(a => a.Username == account.Username && a.Password == account.Password))
+
+            Account acc = _dbContext.Accounts.SingleOrDefault(a => a.Username == account.Username);
+
+            if(acc == null)
+            {
+                return Unauthorized();
+            }
+
+            byte[] passHash = PasswordUtility.HashPassword(account.Password, acc.PasswordSalt);
+            
+            if(Enumerable.SequenceEqual(acc.PasswordHash, passHash))
             {
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecretKey&&12345"));
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
@@ -38,7 +49,7 @@ namespace API_BAK.Controllers
                     issuer: "http://localhost:5000",
                     audience: "http://localhost:5000",
                     claims: new List<Claim>(),
-                    expires: DateTime.Now.AddMinutes(5),
+                    expires: DateTime.Now.AddMinutes(60),
                     signingCredentials: signinCredentials
                     );
 
@@ -46,6 +57,23 @@ namespace API_BAK.Controllers
 
                 return Ok(new { token = tokenString });
             }
+            /*if(_dbContext.Accounts.Any(a => a.Username == account.Username && a.Password == account.Password))
+            {
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecretKey&&12345"));
+                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+                var tokenOptions = new JwtSecurityToken(
+                    issuer: "http://localhost:5000",
+                    audience: "http://localhost:5000",
+                    claims: new List<Claim>(),
+                    expires: DateTime.Now.AddMinutes(60),
+                    signingCredentials: signinCredentials
+                    );
+
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+
+                return Ok(new { token = tokenString });
+            }*/
             return Unauthorized();
         }
         [HttpPost("register")]
@@ -65,6 +93,12 @@ namespace API_BAK.Controllers
             }
 
             account.Created = DateTime.UtcNow;
+
+            byte[] salt = PasswordUtility.GenerateSalt();
+
+            account.PasswordSalt = salt;
+
+            account.PasswordHash = PasswordUtility.HashPassword(account.Password, account.PasswordSalt);
 
             _dbContext.Accounts.Add(account);
 

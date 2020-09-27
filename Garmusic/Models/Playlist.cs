@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace API_BAK.Models
+namespace Garmusic.Models
 {
     public class Playlist : IList<string>
     {

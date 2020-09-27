@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace API_BAK.Models
+namespace Garmusic.Models
 {
     [Table("account")]
     public class Account
@@ -20,16 +20,14 @@ namespace API_BAK.Models
         public string Email { get; set; }
         [Column("username")]
         public string Username { get; set; }
-        [Column("password")]
-        public string Password { get; set; }
-        [Column("created")]
-        public DateTime Created { get; set; }
-
-        /*
+        [Column("password_hash")]
+        public byte[] PasswordHash { get; set; }
         [Column("password_salt")]
         public byte[] PasswordSalt { get; set; }
+        [Column("created")]
+        public DateTime Created { get; set; }
         [NotMapped]
-        public byte[] PasswordHash { get; set; }
-        */
+        public string Password { get; set; }
+        
     }
 }
