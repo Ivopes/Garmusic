@@ -54,23 +54,7 @@ namespace Garmusic.Controllers
 
                 return Ok(new { token = tokenString });
             }
-            /*if(_dbContext.Accounts.Any(a => a.Username == account.Username && a.Password == account.Password))
-            {
-                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecretKey&&12345"));
-                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-
-                var tokenOptions = new JwtSecurityToken(
-                    issuer: "http://localhost:5000",
-                    audience: "http://localhost:5000",
-                    claims: new List<Claim>(),
-                    expires: DateTime.Now.AddMinutes(60),
-                    signingCredentials: signinCredentials
-                    );
-
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-
-                return Ok(new { token = tokenString });
-            }*/
+           
             return Unauthorized();
         }
         [HttpPost("register")]
