@@ -1,4 +1,5 @@
 using Garmusic.Models;
+using Garmusic.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -25,26 +26,9 @@ namespace Garmusic
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthentication(opt => {
-                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-               .AddJwtBearer(options =>
-               {
-                   options.TokenValidationParameters = new TokenValidationParameters
-                   {
-                       ValidateIssuer = true,
-                       ValidateAudience = true,
-                       ValidateLifetime = true,
-                       ValidateIssuerSigningKey = true,
-                       ValidIssuer = "http://localhost:5000",
-                       ValidAudience = "http://localhost:5000",
-                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecretKey&&12345"))
-                   };
-               }
-            );
 
-            //services.AddControllersWithViews();
+            services.ConfigureJwt();
+
             services.AddControllers();
 
             services.AddDbContext<MusicPlayerContext>(options => {
