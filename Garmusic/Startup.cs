@@ -11,6 +11,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Newtonsoft;
+using Garmusic.Services.Dependencies;
+using Garmusic.Interfaces.Services;
+using Garmusic.Interfaces.Repositories;
+using Garmusic.Repositories;
+using Microsoft.IdentityModel.Logging;
 
 namespace Garmusic
 {
@@ -27,9 +33,17 @@ namespace Garmusic
         public void ConfigureServices(IServiceCollection services)
         {
 
+            services.AddTransient<ISongService, SongService>();
+            services.AddTransient<ISongRepository, SongRepository>();
+
+            //IdentityModelEventSource.ShowPII = true;
+
+
             services.ConfigureJwt();
 
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(options => 
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
 
             services.AddDbContext<MusicPlayerContext>(options => {
                 options.UseSqlServer(Configuration.GetConnectionString("MusicPlayerConnection"));
