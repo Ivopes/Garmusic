@@ -21,31 +21,34 @@ namespace Garmusic.Controllers
             _dbContext = dbContext;
         }
         [HttpPost("Login")]
-        public IActionResult Login([FromBody] Account account)
+        public IActionResult Login([FromBody] Account acc)
         {
-            if (account == null)
+            if (acc == null)
             {
                 return BadRequest("Invalid client request");
             }
 
-            Account acc = _dbContext.Accounts.SingleOrDefault(a => a.Username == account.Username);
+            Account account = _dbContext.Accounts.SingleOrDefault(a => a.Username == acc.Username);
 
-            if(acc == null)
+            if(account == null)
             {
                 return Unauthorized();
             }
 
-            byte[] passHash = PasswordUtility.HashPassword(account.Password, acc.PasswordSalt);
+            byte[] passHash = PasswordUtility.HashPassword(acc.Password, account.PasswordSalt);
             
-            if(Enumerable.SequenceEqual(acc.PasswordHash, passHash))
+            if(Enumerable.SequenceEqual(account.PasswordHash, passHash))
             {
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecretKey&&12345"));
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+                
+                var claims = new List<Claim>();
+                claims.Add(new Claim("uid", account.AccountID.ToString()));
 
                 var tokenOptions = new JwtSecurityToken(
                     issuer: "http://localhost:5000",
                     audience: "http://localhost:5000",
-                    claims: new List<Claim>(),
+                    claims: claims,
                     expires: DateTime.Now.AddMinutes(60),
                     signingCredentials: signinCredentials
                     );

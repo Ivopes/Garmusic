@@ -13,12 +13,8 @@ namespace Garmusic.Controllers
         [HttpGet]
         public Playlist GetPlaylist()
         {
-            Playlist playlist = new Playlist();
-            playlist.Add("Song 1");
-            playlist.Add("Song 2");
-            playlist.Add("Song 3");
-
-            return playlist;
+           
+            return new Playlist();
             //return new string[] { "value1", "value2" };
         }
 
