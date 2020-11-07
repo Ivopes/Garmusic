@@ -35,6 +35,8 @@ namespace Garmusic
 
             services.AddTransient<ISongService, SongService>();
             services.AddTransient<ISongRepository, SongRepository>();
+            services.AddTransient<IAccountService, AccountService>();
+            services.AddTransient<IAccountRepository, AccountRepository>();
 
             //IdentityModelEventSource.ShowPII = true;
 
@@ -82,6 +84,7 @@ namespace Garmusic
             app.UseAuthentication();
 
             app.UseAuthorization();
+
 
             app.UseEndpoints(endpoints =>
             {

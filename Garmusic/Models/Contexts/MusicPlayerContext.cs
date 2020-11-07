@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Garmusic.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace Garmusic.Models
         public DbSet<Song> Songs { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
         public DbSet<PlaylistSong> PlaylistSongs { get; set; }
+        public DbSet<AccountStorage> AccountStorages { get; set; }
+        public DbSet<Storage> Storages { get; set; }
         public MusicPlayerContext(DbContextOptions<MusicPlayerContext> options) : base(options)
         {
 
@@ -22,6 +25,8 @@ namespace Garmusic.Models
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<PlaylistSong>()
                 .HasKey(ps => new { ps.PlaylistID, ps.SongID });
+            modelBuilder.Entity<AccountStorage>()
+                .HasKey(ac => new { ac.AccountID, ac.StorageID });
         }
     }
 }
