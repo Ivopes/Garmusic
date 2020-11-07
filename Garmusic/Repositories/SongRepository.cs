@@ -11,7 +11,7 @@ namespace Garmusic.Repositories
 {
     public class SongRepository : ISongRepository
     {
-        private readonly string _dropConn = "sl.AkHvoj0kVHbfNQbk0gNGyi5qH7rrEybyZBMfebwHYYm3DU-g2O6w435wh0JuQXNzrrr_RmMbKgfBE65k_3D9kv6GnQyppA4Nird9J9C6eiH-l5bSHGahHfDD1D3BhOgeYU9EasA";
+        private readonly string _dropConn = "sl.AlH_ZlL3NoPc6ox2uIyA_k2LFL9t7f8_CrTCRRZNshP7HGMslo1Re7TQB0d8W6CcNGEawSWKTyp2bjA5Yt56F1qHAHWBV530KUPPgLTnd64gwdwA0VMfHDoH_rmCLGvsGI6J_Vw";
 
         private readonly MusicPlayerContext _dbContext;
         public SongRepository(MusicPlayerContext context)
@@ -22,34 +22,34 @@ namespace Garmusic.Repositories
         {
             return await _dbContext.Songs.Where(s => s.AccountID == accountID).ToListAsync();
         }
-        public async Task<Song> GetByIdAsync(long id)
+        public async Task<Song> GetByIdAsync(int id)
         {
             return await _dbContext.Songs.FindAsync(id);
         }
-        public async Task MigrateSongs()
+        public async Task MigrateSongs(string token, string cursor)
         {
-            using var dbx = new DropboxClient(_dropConn);
+            using var dbx = new DropboxClient(token);
 
-            var files = await dbx.Files.ListFolderAsync(string.Empty);
-
+            //var files = await dbx.Files.ListFolderAsync(string.Empty);
+            
+            var newFiles = await dbx.Files.ListFolderContinueAsync(cursor);
             List<string> names = new List<string>();
 
-            foreach (var file in files.Entries)
+            foreach (var file in newFiles.Entries)
             {
                 names.Add(file.Name);
             }
-            //return names;
-            //_dbContext.Songs
+
             foreach (var item in names)
             {
-                await PutAsync(new Song{
+                await PostAsync(new Song{
                     AccountID = 1,
                     Name = item
                 });
             }
             await SaveAsync();
         }
-        public async Task PutAsync(Song entity)
+        public async Task PostAsync(Song entity)
         {
             await _dbContext.Songs.AddAsync(entity);
         }

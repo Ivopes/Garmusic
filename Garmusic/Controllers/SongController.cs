@@ -12,6 +12,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System;
 using Microsoft.AspNetCore.Authorization;
+using Garmusic.Models.Entities;
+using System.Text;
+using System.IO;
+using Newtonsoft.Json;
+using Garmusic.Utilities;
 
 namespace Garmusic.Controllers
 {
@@ -24,10 +29,12 @@ namespace Garmusic.Controllers
         private readonly string _conn = "sl.AkBy8-dZtjfeV3-UOS8wUHQigMAoS-GAimeMZiOFJK_7snvydVGQ3C3Zld9NnmADepXKqVH-XmOmzeB_rlc6gxMem5C6Tlqo9s6W2TvPjQbZqoXSvE4dRkJbOCjZL47dZ9LFvB8";
         private readonly MusicPlayerContext _dbContext;
         private readonly ISongService _songService;
-        public SongController(MusicPlayerContext dbContext, ISongService mp3Service)
+        private readonly IAccountService _accountService;
+        public SongController(MusicPlayerContext dbContext, ISongService songService, IAccountService accountService)
         {
             _dbContext = dbContext;
-            _songService = mp3Service;
+            _songService = songService;
+            _accountService = accountService;
         }
         // GET: api/Song
         [HttpGet]
@@ -139,14 +146,20 @@ namespace Garmusic.Controllers
             return list;
         }
         [HttpGet("{id}")]
-        public async Task<ActionResult<Song>> GetByIdAsync(long id)
+        public async Task<ActionResult<Song>> GetByIdAsync(int id)
         {
             return await _songService.GetByIdAsync(id);
         }
-        [HttpGet("migrate")]
+        [HttpPost("migrate")]
         public async Task<ActionResult> MigrateSongs()
         {
-            await _songService.MigrateSongs();
+            string body = await ResponseUtility.BodyStreamToStringAsync(Request.Body, (int) Request.ContentLength);
+
+            NotificationRequest notificationRequest = JsonConvert.DeserializeObject<NotificationRequest>(body);
+
+            var accounts = await _accountService.GetAllByStorageAccountIDAsync(notificationRequest.list_folder.accounts);
+
+            //await _songService.MigrateSongs(notificationRequest.list_folder.accounts);
             return Ok();
         }
     }

@@ -9,8 +9,13 @@ namespace Garmusic.Interfaces.Services
     public interface ISongService
     {
         Task<IEnumerable<Song>> GetAllAsync(int accountID);
-        Task<Song> GetByIdAsync(long id);
+        Task<Song> GetByIdAsync(int id);
         Task AddAsync(Song song);
-        Task MigrateSongs();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="accountID">IDs of the users in storage system</param>
+        /// <returns></returns>
+        Task MigrateSongs(ICollection<string> accountIDs);
     }
 }

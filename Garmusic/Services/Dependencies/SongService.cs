@@ -11,7 +11,6 @@ namespace Garmusic.Services.Dependencies
     public class SongService : ISongService
     {
         private readonly ISongRepository _songRepo;
-        private readonly IMigrationRepository _migRepo;
         public SongService(ISongRepository repository)
         {
             _songRepo = repository;
@@ -20,17 +19,17 @@ namespace Garmusic.Services.Dependencies
         {
             return await _songRepo.GetAllAsync(accountID);
         }
-        public async Task<Song> GetByIdAsync(long id)
+        public async Task<Song> GetByIdAsync(int id)
         {
             return await _songRepo.GetByIdAsync(id);
         }
         public async Task AddAsync(Song entity)
         {
-            await _songRepo.PutAsync(entity);
+            await _songRepo.PostAsync(entity);
         }
-        public async Task MigrateSongs()
+        public async Task MigrateSongs(ICollection<string> accountIDs)
         {
-            await _songRepo.MigrateSongs();
+            await _songRepo.MigrateSongs("", "");
         }
     }
 }

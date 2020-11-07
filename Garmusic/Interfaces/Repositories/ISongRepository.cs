@@ -9,9 +9,9 @@ namespace Garmusic.Interfaces.Repositories
     public interface ISongRepository
     {
         Task<IEnumerable<Song>> GetAllAsync(int accountID);
-        Task<Song> GetByIdAsync(long id);
-        Task PutAsync(Song song);
-        Task MigrateSongs();
+        Task<Song> GetByIdAsync(int id);
+        Task PostAsync(Song song);
+        Task MigrateSongs(string token, string cursor);
         Task SaveAsync();
     }
 }
