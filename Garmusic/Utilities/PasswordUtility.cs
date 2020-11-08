@@ -52,14 +52,13 @@ namespace Garmusic.Utilities
         /// <returns>hashed password</returns>
         public static byte[] HashPassword(string password, byte[] salt)
         {
-            using (var sha = SHA256.Create())
-            {
-                string saltString = Encoding.UTF8.GetString(salt);
-                string passToHash = password + saltString;
-                byte[] bytes = Encoding.UTF8.GetBytes(passToHash);
-                byte[] hash = sha.ComputeHash(bytes);
-                return hash;
-            }
+            using var sha = SHA256.Create();
+            
+            string saltString = Encoding.UTF8.GetString(salt);
+            string passToHash = password + saltString;
+            byte[] bytes = Encoding.UTF8.GetBytes(passToHash);
+            byte[] hash = sha.ComputeHash(bytes);
+            return hash;
         }
     }
 }
