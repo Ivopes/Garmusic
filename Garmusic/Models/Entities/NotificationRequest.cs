@@ -15,7 +15,7 @@ namespace Garmusic.Models.Entities
         }
         public class Delta
         {
-            public ICollection<int> users;
+            public ICollection<string> users;
         }
     }
 
