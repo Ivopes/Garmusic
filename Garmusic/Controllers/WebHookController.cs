@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Garmusic.Interfaces.Services;
 using Garmusic.Models.Entities;
 using Garmusic.Utilities;
 using Microsoft.AspNetCore.Http;
@@ -18,9 +19,13 @@ namespace Garmusic.Controllers
     public class WebHookController : ControllerBase
     {
         private readonly IConfiguration _config;
-        public WebHookController(IConfiguration configuration)
+        private readonly IAccountService _accService;
+        private readonly IMigrationService _migService;
+        public WebHookController(IConfiguration configuration, IAccountService accountService, IMigrationService migrationService)
         {
             _config = configuration;
+            _accService = accountService;
+            _migService = migrationService;
         }
         [HttpGet("Dropbox")]
         public ActionResult<string> Dropbox(string challenge)
@@ -29,9 +34,7 @@ namespace Garmusic.Controllers
         }
         [HttpPost("Dropbox")]
         public async Task<ActionResult<NotificationRequest>> Dropbox()
-        {
-            System.Diagnostics.Trace.TraceInformation("Dostal jsem hook");
-
+        {   
             if (!Request.Headers.TryGetValue("X-Dropbox-Signature", out var signatureHeader))
             {
                 return Unauthorized();
@@ -40,28 +43,23 @@ namespace Garmusic.Controllers
 
             string body = await ResponseUtility.BodyStreamToStringAsync(Request.Body, (int)Request.ContentLength);
 
-            NotificationRequest notificationRequest = JsonConvert.DeserializeObject<NotificationRequest>(body);
-
             using var sha = new HMACSHA256(Encoding.UTF8.GetBytes(_config.GetValue<string>("DropboxSecret")));
 
             var hashedBody = BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(body))).Replace("-", "").ToLower();
-
-            System.Diagnostics.Trace.TraceInformation("Jdu porovnat");
-            System.Diagnostics.Trace.TraceInformation(body);
-            System.Diagnostics.Trace.TraceInformation(hashedBody);
-            System.Diagnostics.Trace.TraceInformation(signature);
-
-            //var s = BitConverter.ToString(signature);
 
             if (hashedBody != signature)
             {
                 return Unauthorized();
             }
 
-            //var accounts = await _accountService.GetAllByStorageAccountIDAsync(data.list_folder.accounts);
-            System.Diagnostics.Trace.TraceInformation("Uspech");
+            NotificationRequest data = JsonConvert.DeserializeObject<NotificationRequest>(body);
+
+            var accounts = await _accService.GetAllByStorageAccountIDAsync(data.list_folder.accounts);
+
+            await _migService.DropboxMigrateAsync(accounts);
+
             //await _songService.MigrateSongs(notificationRequest.list_folder.accounts);
-            return Ok(new { data = notificationRequest, sign = signatureHeader });
+            return Ok();
         }
     }
 }

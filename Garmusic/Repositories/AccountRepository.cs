@@ -23,8 +23,11 @@ namespace Garmusic.Repositories
 
         public async Task<IEnumerable<Account>> GetAllByStorageAccountIDAsync(IEnumerable<string> storageAccountsIDs)
         {
+            //var accounts = _dbContext.Accounts.Include(a => a.AccountStorages).AsEnumerable().Where(a => a.AccountStorages.Count != 0 && storageAccountsIDs.Contains(a.AccountStorages[0].StorageAccountID)).ToList();
             var accounts = await _dbContext.Accounts.Include(a => a.AccountStorages).ToListAsync();
+
             var a = new List<Account>();
+
             foreach (var acc in accounts)
             {
                 if(acc.AccountStorages.Count == 0)
@@ -37,7 +40,6 @@ namespace Garmusic.Repositories
                 }
             }
             return a;
-            //return await _dbContext.Accounts.Include(a => a.AccountStorages).Where(a => storageAccountsIDs.Contains(a.AccountStorages[0].StorageAccountID)).ToListAsync();
         }
 
         public Task<Account> GetByIdAsync(int id)
