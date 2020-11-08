@@ -44,16 +44,18 @@ namespace Garmusic.Controllers
 
             using var sha = new HMACSHA256(Encoding.UTF8.GetBytes(_config.GetValue<string>("DropboxSecret")));
 
-            var hashedBody = Convert.ToBase64String(sha.ComputeHash(Encoding.UTF8.GetBytes(body)));
+            var hashedBody = BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(body))).Replace("-", "").ToLower();
 
             System.Diagnostics.Trace.TraceInformation("Jdu porovnat");
             System.Diagnostics.Trace.TraceInformation(body);
+            System.Diagnostics.Trace.TraceInformation(hashedBody);
             System.Diagnostics.Trace.TraceInformation(signature);
+
+            //var s = BitConverter.ToString(signature);
 
             if (hashedBody != signature)
             {
-                notificationRequest.list_folder.accounts.Add("asddddddd");
-                return Unauthorized(new {data = notificationRequest, sign= signatureHeader });
+                return Unauthorized();
             }
 
             //var accounts = await _accountService.GetAllByStorageAccountIDAsync(data.list_folder.accounts);
