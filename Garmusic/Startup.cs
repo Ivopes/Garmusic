@@ -37,6 +37,8 @@ namespace Garmusic
             services.AddTransient<ISongRepository, SongRepository>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IAccountRepository, AccountRepository>();
+            services.AddTransient<IMigrationService, MigrationService>();
+            services.AddTransient<IMigrationRepository, MigrationRepository>();
 
             //IdentityModelEventSource.ShowPII = true;
 
