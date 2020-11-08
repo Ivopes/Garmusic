@@ -17,6 +17,9 @@ using System.Text;
 using System.IO;
 using Newtonsoft.Json;
 using Garmusic.Utilities;
+using Microsoft.IdentityModel.Protocols;
+using System.Security.Cryptography;
+using Microsoft.Extensions.Configuration;
 
 namespace Garmusic.Controllers
 {
@@ -30,11 +33,13 @@ namespace Garmusic.Controllers
         private readonly MusicPlayerContext _dbContext;
         private readonly ISongService _songService;
         private readonly IAccountService _accountService;
-        public SongController(MusicPlayerContext dbContext, ISongService songService, IAccountService accountService)
+        private readonly IConfiguration _config;
+        public SongController(MusicPlayerContext dbContext, ISongService songService, IAccountService accountService, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _songService = songService;
             _accountService = accountService;
+            _config = configuration;
         }
         // GET: api/Song
         [HttpGet]
@@ -153,12 +158,29 @@ namespace Garmusic.Controllers
         [HttpPost("migrate")]
         public async Task<ActionResult> MigrateSongs()
         {
+            if(!Request.Headers.TryGetValue("X-Dropbox-Signature", out var signatureHeader))
+            {
+                return Unauthorized();
+            }
+            string signature = signatureHeader.FirstOrDefault();
+
             string body = await ResponseUtility.BodyStreamToStringAsync(Request.Body, (int) Request.ContentLength);
 
+            var bodyBytes = Encoding.UTF8.GetBytes("ahoj");
+
+            using var sha = new HMACSHA256(Encoding.UTF8.GetBytes(_config.GetValue<string>("DropboxSecret")));
+
+            var hashedBody = sha.ComputeHash(Encoding.UTF8.GetBytes(body));
+            var b = Encoding.UTF8.GetString(hashedBody);
+            var a = System.Convert.ToBase64String(hashedBody);
+            if(!Enumerable.SequenceEqual(hashedBody, sha.Hash))
+            {
+                return Unauthorized();
+            }
+
             NotificationRequest notificationRequest = JsonConvert.DeserializeObject<NotificationRequest>(body);
-
-            var accounts = await _accountService.GetAllByStorageAccountIDAsync(notificationRequest.list_folder.accounts);
-
+            //var accounts = await _accountService.GetAllByStorageAccountIDAsync(data.list_folder.accounts);
+            
             //await _songService.MigrateSongs(notificationRequest.list_folder.accounts);
             return Ok();
         }
