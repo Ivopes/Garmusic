@@ -126,7 +126,7 @@ namespace Garmusic.Controllers
             return names;
         }
         [HttpGet("database/s")]
-        public async Task<IEnumerable<Song>> GetSFromDatabase()
+        public Task<IEnumerable<Song>> GetSFromDatabase()
         {
             //return _dbContext.Songs.Include(s => s.Account);
             //return await _songService.GetAllAsync();
