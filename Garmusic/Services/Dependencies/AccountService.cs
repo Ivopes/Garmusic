@@ -20,17 +20,10 @@ namespace Garmusic.Services.Dependencies
         {
             throw new NotImplementedException();
         }
-
         public async Task<IEnumerable<Account>> GetAllAsync()
         {
             return await _accRepo.GetAllAsync();
         }
-
-        public async Task<IEnumerable<Account>> GetAllByStorageAccountIDAsync(IEnumerable<string> storageAccountsIDs)
-        {
-            return await _accRepo.GetAllByStorageAccountIDAsync(storageAccountsIDs);
-        }
-
         public Task<Account> GetByIdAsync(int id)
         {
             throw new NotImplementedException();

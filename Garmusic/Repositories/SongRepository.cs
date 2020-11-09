@@ -11,8 +11,6 @@ namespace Garmusic.Repositories
 {
     public class SongRepository : ISongRepository
     {
-        private readonly string _dropConn = "sl.AlH_ZlL3NoPc6ox2uIyA_k2LFL9t7f8_CrTCRRZNshP7HGMslo1Re7TQB0d8W6CcNGEawSWKTyp2bjA5Yt56F1qHAHWBV530KUPPgLTnd64gwdwA0VMfHDoH_rmCLGvsGI6J_Vw";
-
         private readonly MusicPlayerContext _dbContext;
         public SongRepository(MusicPlayerContext context)
         {
