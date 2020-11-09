@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 
 namespace Garmusic.Models.Entities
 {
-    public class StorageJson
+    public class DropboxJson
     {
         public string Cursor { get; set; }
+        public string JwtToken { get; set; }
+        public string DropboxID { get; set; }
     }
 }
