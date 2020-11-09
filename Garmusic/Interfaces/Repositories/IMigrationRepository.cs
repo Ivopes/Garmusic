@@ -8,6 +8,6 @@ namespace Garmusic.Interfaces.Repositories
 {
     public interface IMigrationRepository
     {
-        Task DropboxMigrationAsync(IEnumerable<Account> accounts);
+        Task DropboxMigrationAsync(IEnumerable<string> storageAccountsIDs);
     }
 }

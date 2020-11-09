@@ -14,6 +14,5 @@ namespace Garmusic.Models.Entities
         public int StorageID { get; set; }
         public Storage Storage { get; set; }
         public string JsonData { get; set; }
-        public string StorageAccountID { get; set; }
     }
 }

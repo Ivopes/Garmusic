@@ -15,9 +15,9 @@ namespace Garmusic.Services.Dependencies
         {
             _migRepo = migrationRepository;
         }
-        public async Task DropboxMigrateAsync(IEnumerable<Account> accounts)
+        public async Task DropboxMigrateAsync(IEnumerable<string> storageAccountsIDs)
         {
-            await _migRepo.DropboxMigrationAsync(accounts);
+            await _migRepo.DropboxMigrationAsync(storageAccountsIDs);
         }
     }
 }

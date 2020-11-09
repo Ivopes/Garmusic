@@ -54,9 +54,9 @@ namespace Garmusic.Controllers
 
             NotificationRequest data = JsonConvert.DeserializeObject<NotificationRequest>(body);
 
-            var accounts = await _accService.GetAllByStorageAccountIDAsync(data.list_folder.accounts);
+            //var accounts = await _accService.GetAllByStorageAccountIDAsync(data.list_folder.accounts);
 
-            await _migService.DropboxMigrateAsync(accounts);
+            await _migService.DropboxMigrateAsync(data.list_folder.accounts);
 
             //await _songService.MigrateSongs(notificationRequest.list_folder.accounts);
             return Ok();
