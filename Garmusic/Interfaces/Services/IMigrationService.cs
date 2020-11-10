@@ -8,6 +8,7 @@ namespace Garmusic.Interfaces.Services
 {
     public interface IMigrationService
     {
-        Task DropboxMigrateAsync(IEnumerable<string> storageAccountsIDs);
+        Task DropboxWebhookMigrationAsync(IEnumerable<string> storageAccountsIDs);
+        Task DropboxMigrationAsync(int accountId);
     }
 }

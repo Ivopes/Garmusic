@@ -21,10 +21,12 @@ namespace Garmusic.Controllers
     {
         private readonly MusicPlayerContext _dbContext;
         private readonly IAuthService _authService;
-        public AuthController(MusicPlayerContext dbContext, IAuthService authService)
+        private readonly IMigrationService _migService;
+        public AuthController(MusicPlayerContext dbContext, IAuthService authService, IMigrationService migrationService)
         {
             _dbContext = dbContext;
             _authService = authService;
+            _migService = migrationService;
         }
         [HttpPost("Login")]
         public async Task<ActionResult> LoginAsync([FromBody] Account account)
@@ -70,6 +72,8 @@ namespace Garmusic.Controllers
             }
 
             await _authService.RegisterDropboxAsync(accountId, json);
+
+            await _migService.DropboxMigrationAsync(accountId); 
 
             return Ok();
         }

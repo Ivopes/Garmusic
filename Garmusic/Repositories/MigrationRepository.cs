@@ -21,7 +21,7 @@ namespace Garmusic.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task DropboxMigrationAsync(IEnumerable<string> storageAccountsIDs)
+        public async Task DropboxWebhookMigrationAsync(IEnumerable<string> storageAccountsIDs)
         {
             //TODO: update in EF core 5.0
             //var accounts = await _dbContext.Accounts.Include(a => a.AccountStorages.Where(acs => acs.StorageID == (int)StorageType.Dropbox )).ToListAsync();
@@ -29,7 +29,7 @@ namespace Garmusic.Repositories
             foreach (var acc in accounts)
             {
                 acc.AccountStorages = acc.AccountStorages.Where(acs => acs.StorageID == (int)storageType).ToArray();
-
+                
                 if (acc.AccountStorages.Count != 1)
                 {
                     continue;
@@ -42,20 +42,46 @@ namespace Garmusic.Repositories
                     continue;
                 }
 
+                if (!storageAccountsIDs.Contains(json.DropboxID))
+                {
+                    continue;
+                }
+
                 using var dbx = new DropboxClient(json.JwtToken);
 
                 var files = await dbx.Files.ListFolderContinueAsync(json.Cursor);
 
                 json.Cursor = files.Cursor;
 
-                await UpdateJsonData(acc, json);
-                await UpdateSongs(acc, files.Entries);
+                await UpdateJsonData(acc.AccountID, json);
+                await UpdateSongs(acc.AccountID, files.Entries);
 
                 await _dbContext.SaveChangesAsync();
             }
         }
+        public async Task DropboxMigrationAsync(int accountId)
+        {
+            AccountStorage entity = await _dbContext.AccountStorages.FindAsync(new object[] { accountId, (int)storageType });
 
-        private async Task UpdateSongs(Account acc, IEnumerable<Metadata> files)
+            if (entity == null)
+            {
+                return;
+            }
+
+            DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(entity.JsonData);
+
+            using var dbx = new DropboxClient(dbxJson.JwtToken);
+
+            var files = await dbx.Files.ListFolderAsync("");
+
+            dbxJson.Cursor = files.Cursor;
+
+            await UpdateJsonData(accountId, dbxJson);
+            await UpdateSongs(accountId, files.Entries);
+
+            await _dbContext.SaveChangesAsync();
+        }
+        private async Task UpdateSongs(int accountId, IEnumerable<Metadata> files)
         {
             foreach (var song in files)
             {
@@ -77,7 +103,7 @@ namespace Garmusic.Repositories
                     //TODO dobry cast?
                     Song entity = new Song()
                     {
-                        AccountID = acc.AccountID,
+                        AccountID = accountId,
                         Name = song.Name,
                         StorageID = (int)storageType,
                         StorageSongID = ((FileMetadata)song).Id
@@ -87,9 +113,9 @@ namespace Garmusic.Repositories
             }
         }
 
-        private async Task UpdateJsonData(Account account, DropboxJson json)
+        private async Task UpdateJsonData(int accountId, DropboxJson json)
         {
-            var entity = await _dbContext.AccountStorages.FindAsync(new object[] { account.AccountStorages[0].AccountID, account.AccountStorages[0].StorageID });
+            var entity = await _dbContext.AccountStorages.FindAsync(new object[] { accountId, (int)storageType });
 
             entity.JsonData = JsonConvert.SerializeObject(json);
         }
