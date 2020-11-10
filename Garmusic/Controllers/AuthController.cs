@@ -8,6 +8,10 @@ using Garmusic.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Garmusic.Utilities;
+using Garmusic.Services.Dependencies;
+using Garmusic.Interfaces.Services;
+using System.Threading.Tasks;
+using Garmusic.Models.Entities;
 
 namespace Garmusic.Controllers
 {
@@ -16,79 +20,70 @@ namespace Garmusic.Controllers
     public class AuthController : ControllerBase
     {
         private readonly MusicPlayerContext _dbContext;
-        public AuthController(MusicPlayerContext dbContext)
+        private readonly IAuthService _authService;
+        public AuthController(MusicPlayerContext dbContext, IAuthService authService)
         {
             _dbContext = dbContext;
+            _authService = authService;
         }
         [HttpPost("Login")]
-        public IActionResult Login([FromBody] Account acc)
-        {
-            if (acc == null)
-            {
-                return BadRequest("Invalid client request");
-            }
-
-            Account account = _dbContext.Accounts.SingleOrDefault(a => a.Username == acc.Username);
-
-            if(account == null)
-            {
-                return Unauthorized();
-            }
-
-            byte[] passHash = PasswordUtility.HashPassword(acc.Password, account.PasswordSalt);
-            
-            if(Enumerable.SequenceEqual(account.PasswordHash, passHash))
-            {
-                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecretKey&&12345"));
-                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-                
-                var claims = new List<Claim>();
-                claims.Add(new Claim("uid", account.AccountID.ToString()));
-
-                var tokenOptions = new JwtSecurityToken(
-                    issuer: "http://localhost:5000",
-                    audience: "http://localhost:5000",
-                    claims: claims,
-                    expires: DateTime.Now.AddMinutes(60),
-                    signingCredentials: signinCredentials
-                    );
-
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-
-                return Ok(new { token = tokenString });
-            }
-           
-            return Unauthorized();
-        }
-        [HttpPost("register")]
-        public IActionResult Register([FromBody] Account account)
+        public async Task<ActionResult> LoginAsync([FromBody] Account account)
         {
             if (account == null)
             {
                 return BadRequest("Invalid client request");
             }
-            if (_dbContext.Accounts.Any(a => a.Email == account.Email))
+
+            string jwtToken = await _authService.LoginAsync(account);
+
+            if (jwtToken == "")
             {
-                return BadRequest("Email is already in use");
+                return Unauthorized();
             }
-            if(_dbContext.Accounts.Any(a => a.Username == account.Username))
+
+            return Ok(new { token = jwtToken });
+        }
+        [HttpPost("register")]
+        public async Task<ActionResult> Register([FromBody] Account account)
+        {
+            if (account == null)
             {
-                return BadRequest("Username is already in use");
+                return BadRequest("Invalid client request");
             }
 
-            account.Created = DateTime.UtcNow;
+            string response = await _authService.RegisterAsync(account);
 
-            byte[] salt = PasswordUtility.GenerateSalt();
+            if (response == "")
+            {
+                return Ok();
+            }
 
-            account.PasswordSalt = salt;
+            return BadRequest(response);
+        }
+        [HttpPost("registerDropbox")]
+        public async Task<ActionResult> RegisterDropboxAsync([FromBody] DropboxJson json)
+        {
+            int accountId = GetIdFromRequest();
+            if(accountId == -1)
+            {
+                return BadRequest();
+            }
 
-            account.PasswordHash = PasswordUtility.HashPassword(account.Password, account.PasswordSalt);
+            await _authService.RegisterDropboxAsync(accountId, json);
 
-            _dbContext.Accounts.Add(account);
+            return Ok();
+        }
 
-            _dbContext.SaveChanges();
-
-            return Ok(account);
+        private int GetIdFromRequest()
+        {
+            int accountId = -1;
+            if (Request.Headers.TryGetValue("Authorization", out var token))
+            {
+                var a = new JwtSecurityTokenHandler().ReadJwtToken(token[0].Substring(7));
+                var b = a.Payload.Claims;
+                accountId = int.Parse(b.FirstOrDefault(b => b.Type == "uid").Value);
+            }
+            return accountId;
         }
     }
 }

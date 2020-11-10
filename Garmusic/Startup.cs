@@ -32,18 +32,12 @@ namespace Garmusic
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.AddTransient<ISongService, SongService>();
-            services.AddTransient<ISongRepository, SongRepository>();
-            services.AddTransient<IAccountService, AccountService>();
-            services.AddTransient<IAccountRepository, AccountRepository>();
-            services.AddTransient<IMigrationService, MigrationService>();
-            services.AddTransient<IMigrationRepository, MigrationRepository>();
+            services.AddDependency();
 
             //IdentityModelEventSource.ShowPII = true;
 
 
-            services.ConfigureJwt();
+            services.ConfigureJwt(Configuration);
 
             services.AddControllers().AddNewtonsoftJson(options => 
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore

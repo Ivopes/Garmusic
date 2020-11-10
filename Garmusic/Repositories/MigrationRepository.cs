@@ -48,7 +48,7 @@ namespace Garmusic.Repositories
 
                 json.Cursor = files.Cursor;
 
-                UpdateJsonData(acc, json);
+                await UpdateJsonData(acc, json);
                 await UpdateSongs(acc, files.Entries);
 
                 await _dbContext.SaveChangesAsync();
@@ -87,9 +87,9 @@ namespace Garmusic.Repositories
             }
         }
 
-        private void UpdateJsonData(Account account, DropboxJson json)
+        private async Task UpdateJsonData(Account account, DropboxJson json)
         {
-            var entity = _dbContext.AccountStorages.Find(new object[] { account.AccountStorages[0].AccountID, account.AccountStorages[0].StorageID });
+            var entity = await _dbContext.AccountStorages.FindAsync(new object[] { account.AccountStorages[0].AccountID, account.AccountStorages[0].StorageID });
 
             entity.JsonData = JsonConvert.SerializeObject(json);
         }
