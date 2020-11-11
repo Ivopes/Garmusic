@@ -25,6 +25,25 @@ namespace Garmusic.Repositories
             _dbContext = context;
             _config = configuration;
         }
+
+        public async Task<string> GetDropboxJwtAsync(int accountId)
+        {
+            var entity = await _dbContext.AccountStorages.FindAsync(new object[] { accountId, (int)StorageType.Dropbox});
+            if (entity == null)
+            {
+                return "";
+            }
+
+            DropboxJson json = JsonConvert.DeserializeObject<DropboxJson>(entity.JsonData);
+
+            if (string.IsNullOrEmpty(json.JwtToken))
+            {
+                return "";
+            }
+
+            return json.JwtToken;
+        }
+
         public async Task<string> LoginAsync(Account account)
         {
             string token = "";
@@ -87,7 +106,6 @@ namespace Garmusic.Repositories
 
             return response;
         }
-
         public async Task RegisterDropboxAsync(int accountId, DropboxJson json)
         {
             AccountStorage entity = new AccountStorage()

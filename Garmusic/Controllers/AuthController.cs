@@ -46,7 +46,7 @@ namespace Garmusic.Controllers
             return Ok(new { token = jwtToken });
         }
         [HttpPost("register")]
-        public async Task<ActionResult> Register([FromBody] Account account)
+        public async Task<ActionResult> RegisterAsync([FromBody] Account account)
         {
             if (account == null)
             {
@@ -77,7 +77,19 @@ namespace Garmusic.Controllers
 
             return Ok();
         }
+        [HttpGet("getDropboxJwt")]
+        public async Task<ActionResult<string>> GetDropboxJwtAsync()
+        {
+            int accountId = GetIdFromRequest();
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
 
+            string jwtToken = await _authService.GetDropboxJwtAsync(accountId);
+
+            return Ok(new { token = jwtToken });
+        }
         private int GetIdFromRequest()
         {
             int accountId = -1;

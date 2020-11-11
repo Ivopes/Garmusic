@@ -43,26 +43,15 @@ namespace Garmusic.Controllers
         }
         // GET: api/Song
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Song>>> GetAll()
+        public async Task<ActionResult<IEnumerable<Song>>> GetAllAsync()
         {
-            /*byte[] bytes;
-            string fileLocation = "Assets/sample.mp3";
-            using (var reader = new BinaryReader(new FileStream(fileLocation, FileMode.Open)))
+            int accountId = GetIdFromRequest();
+
+            if (accountId == -1)
             {
-                long bytesNum = new FileInfo(fileLocation).Length;
-                bytes = reader.ReadBytes((int) bytesNum);
+                return BadRequest();
             }
 
-            return File(bytes, "audio/mpeg", "stahnuty.mp3");*/
-            //return await _dbContext.Songs.ToListAsync();
-            int accountId = -1;
-            if(Request.Headers.TryGetValue("Authorization", out var token))
-            {
-                var a = new JwtSecurityTokenHandler().ReadJwtToken(token[0].Substring(7));
-                var b = a.Payload.Claims;
-                
-                accountId = int.Parse(b.FirstOrDefault(b => b.Type == "uid").Value);
-            }
             var result = await _songService.GetAllAsync(accountId);
 
             if(result == null)
@@ -108,22 +97,6 @@ namespace Garmusic.Controllers
             var bytes = await file.GetContentAsByteArrayAsync();
 
             return File(bytes, "audio/mpeg", "dropbox.mp3");
-        }
-        [HttpGet("all")]
-        public async Task<IList<string>> GetAllAsync()
-        {
-            using var dbx = new DropboxClient(_conn);
-
-            var files = await dbx.Files.ListFolderAsync(string.Empty);
-
-            List<string> names = new List<string>();
-
-            foreach (var file in files.Entries)
-            {
-                names.Add(file.Name);
-            }
-         
-            return names;
         }
         [HttpGet("database/s")]
         public Task<IEnumerable<Song>> GetSFromDatabase()
@@ -183,6 +156,17 @@ namespace Garmusic.Controllers
             
             //await _songService.MigrateSongs(notificationRequest.list_folder.accounts);
             return Ok();
+        }
+        private int GetIdFromRequest()
+        {
+            int accountId = -1;
+            if (Request.Headers.TryGetValue("Authorization", out var token))
+            {
+                var a = new JwtSecurityTokenHandler().ReadJwtToken(token[0].Substring(7));
+                var b = a.Payload.Claims;
+                accountId = int.Parse(b.FirstOrDefault(b => b.Type == "uid").Value);
+            }
+            return accountId;
         }
     }
 }

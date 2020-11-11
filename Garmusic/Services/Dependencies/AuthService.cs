@@ -16,7 +16,13 @@ namespace Garmusic.Services.Dependencies
         public AuthService(IAuthRepository authRepository)
         {
             _authRepository = authRepository;
-        } 
+        }
+
+        public async Task<string> GetDropboxJwtAsync(int accountId)
+        {
+            return await _authRepository.GetDropboxJwtAsync(accountId);
+        }
+
         public async Task<string> LoginAsync(Account account)
         {
             return await _authRepository.LoginAsync(account);

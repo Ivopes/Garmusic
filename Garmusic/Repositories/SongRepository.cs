@@ -18,6 +18,7 @@ namespace Garmusic.Repositories
         }
         public async Task<IEnumerable<Song>> GetAllAsync(int accountID)
         {
+            var s = _dbContext.Songs.ToList();
             return await _dbContext.Songs.Where(s => s.AccountID == accountID).ToListAsync();
         }
         public async Task<Song> GetByIdAsync(int id)

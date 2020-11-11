@@ -12,5 +12,6 @@ namespace Garmusic.Interfaces.Repositories
         Task<string> LoginAsync(Account account);
         Task<string> RegisterAsync(Account account);
         Task RegisterDropboxAsync(int accountId, DropboxJson json);
+        Task<string> GetDropboxJwtAsync(int accountId);
     }
 }
