@@ -25,7 +25,6 @@ namespace Garmusic.Repositories
             _dbContext = context;
             _config = configuration;
         }
-
         public async Task<string> GetDropboxJwtAsync(int accountId)
         {
             var entity = await _dbContext.AccountStorages.FindAsync(new object[] { accountId, (int)StorageType.Dropbox});
@@ -43,7 +42,6 @@ namespace Garmusic.Repositories
 
             return json.JwtToken;
         }
-
         public async Task<string> LoginAsync(Account account)
         {
             string token = "";

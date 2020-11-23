@@ -63,18 +63,25 @@ namespace Garmusic.Controllers
         }
         // POST: api/Song
         [HttpPost]
-        public async Task<bool> Post([FromForm]IFormFile file)
+        public async Task<ActionResult> PostAsync([FromForm] IFormFile file)
         {
-            
-            using var dbx = new DropboxClient(_conn);
+            int accountId = GetIdFromRequest();
 
-            var uploaded = await dbx.Files.UploadAsync(
-                                        "/" + file.FileName,
-                                        WriteMode.Add.Instance,
-                                        autorename: true,
-                                        body: file.OpenReadStream());
-            
-            return uploaded != null;
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                await _songService.PostToDbxAsync(file, accountId);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest("Oops! Something went wrong, please try again later. File may already exists");
+            }
+
+            return Ok();
         }
         // PUT: api/Mp3/5
         [HttpPut("{id}")]

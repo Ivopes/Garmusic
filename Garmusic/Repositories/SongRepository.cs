@@ -1,9 +1,14 @@
 ﻿using Dropbox.Api;
+using Dropbox.Api.Files;
 using Garmusic.Interfaces.Repositories;
 using Garmusic.Models;
+using Garmusic.Models.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,7 +23,6 @@ namespace Garmusic.Repositories
         }
         public async Task<IEnumerable<Song>> GetAllAsync(int accountID)
         {
-            var s = _dbContext.Songs.ToList();
             return await _dbContext.Songs.Where(s => s.AccountID == accountID).ToListAsync();
         }
         public async Task<Song> GetByIdAsync(int id)
@@ -48,11 +52,37 @@ namespace Garmusic.Repositories
             }
             await SaveAsync();
         }
-        public async Task PostAsync(Song entity)
+
+        public async Task PostAsync(Song song)
         {
-            await _dbContext.Songs.AddAsync(entity);
+            await _dbContext.Songs.AddAsync(song);
         }
 
+        public async Task PostToDbxAsync(IFormFile file, int accountId)
+        {
+            var accountStorage = _dbContext.AccountStorages.Find(new object[] { accountId, (int)StorageType.Dropbox });
+            
+            DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
+
+            using var dbx = new DropboxClient(dbxJson.JwtToken);
+            
+            var uploaded = await dbx.Files.UploadAsync(
+                                                    "/" + file.FileName,
+                                                    WriteMode.Add.Instance,
+                                                    strictConflict: true,
+                                                    body: file.OpenReadStream());
+            Song song = new Song()
+            {
+                AccountID = accountId,
+                Name = file.FileName,
+                StorageSongID = uploaded.Id,
+                StorageID = (int)StorageType.Dropbox
+            };
+
+            await PostAsync(song);
+
+            await SaveAsync();
+        }
         public async Task SaveAsync()
         {
             await _dbContext.SaveChangesAsync();

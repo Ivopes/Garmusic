@@ -1,4 +1,5 @@
 ﻿using Garmusic.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,8 @@ namespace Garmusic.Interfaces.Services
     {
         Task<IEnumerable<Song>> GetAllAsync(int accountID);
         Task<Song> GetByIdAsync(int id);
-        Task AddAsync(Song song);
+        Task PostToDbxAsync(IFormFile file, int accountId);
+        Task PostAsync(Song song);
         /// <summary>
         /// 
         /// </summary>

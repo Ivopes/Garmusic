@@ -1,4 +1,5 @@
 ﻿using Garmusic.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace Garmusic.Interfaces.Repositories
     {
         Task<IEnumerable<Song>> GetAllAsync(int accountID);
         Task<Song> GetByIdAsync(int id);
+        Task PostToDbxAsync(IFormFile file, int accountId);
         Task PostAsync(Song song);
         Task MigrateSongs(string token, string cursor);
         Task SaveAsync();
