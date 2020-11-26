@@ -13,7 +13,6 @@ namespace Garmusic.Models
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Song> Songs { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
-        public DbSet<PlaylistSong> PlaylistSongs { get; set; }
         public DbSet<AccountStorage> AccountStorages { get; set; }
         public DbSet<Storage> Storages { get; set; }
         public MusicPlayerContext(DbContextOptions<MusicPlayerContext> options) : base(options)
@@ -23,10 +22,10 @@ namespace Garmusic.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<PlaylistSong>()
-                .HasKey(ps => new { ps.PlaylistID, ps.SongID });
+            
             modelBuilder.Entity<AccountStorage>()
                 .HasKey(ac => new { ac.AccountID, ac.StorageID });
+
         }
     }
 }

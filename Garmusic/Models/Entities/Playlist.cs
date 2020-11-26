@@ -9,9 +9,9 @@ namespace Garmusic.Models
     [Table("playlist")]
     public class Playlist
     {
-        public int PlaylistID { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public int AccountID { get; set; }
-        public ICollection<PlaylistSong> Songs { get; set; }
+        public ICollection<Song> Songs { get; set; }
     }
 }

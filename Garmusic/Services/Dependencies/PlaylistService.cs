@@ -20,6 +20,11 @@ namespace Garmusic.Services.Dependencies
             return await _playlistRepository.GetAllAsync(accountId);
         }
 
+        public async Task<IEnumerable<Song>> GetSongsById(int id)
+        {
+            return await _playlistRepository.GetSongsById(id);
+        }
+
         public async Task PostAsync(Playlist playlist)
         {
             await _playlistRepository.PostAsync(playlist);

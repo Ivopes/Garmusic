@@ -11,9 +11,12 @@ namespace Garmusic.Interfaces.Repositories
     {
         Task<IEnumerable<Song>> GetAllAsync(int accountID);
         Task<Song> GetByIdAsync(int id);
-        Task PostToDbxAsync(IFormFile file, int accountId);
+        Task<Song> PostToDbxAsync(IFormFile file, int accountId);
         Task PostAsync(Song song);
         Task MigrateSongs(string token, string cursor);
+        Task AddSongToPlaylistAsync(int sID, int plID);
+        Task RemovePlaylistAsync(int sID, int plID);
+        Task DeleteFromDbxAsync(int sID, int accountID);
         Task SaveAsync();
     }
 }

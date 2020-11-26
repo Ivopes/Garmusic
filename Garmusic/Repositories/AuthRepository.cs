@@ -27,7 +27,7 @@ namespace Garmusic.Repositories
         }
         public async Task<string> GetDropboxJwtAsync(int accountId)
         {
-            var entity = await _dbContext.AccountStorages.FindAsync(new object[] { accountId, (int)StorageType.Dropbox});
+            var entity = await _dbContext.AccountStorages.FindAsync(accountId, (int)StorageType.Dropbox);
             if (entity == null)
             {
                 return "";

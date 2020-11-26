@@ -8,5 +8,6 @@ namespace Garmusic.Interfaces.Services
     {
         Task<IEnumerable<Playlist>> GetAllAsync(int accountId);
         Task PostAsync(Playlist playlist);
+        Task<IEnumerable<Song>> GetSongsById(int id);
     }
 }

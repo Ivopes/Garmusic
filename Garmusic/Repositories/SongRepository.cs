@@ -21,9 +21,43 @@ namespace Garmusic.Repositories
         {
             _dbContext = context;
         }
+
+        public async Task AddSongToPlaylistAsync(int sID, int plID)
+        {
+            var song = await _dbContext.Songs.Include(s => s.Playlists).SingleOrDefaultAsync(s => s.Id == sID);
+            var playlist = await _dbContext.Playlists.FindAsync(plID);
+
+            song.Playlists.Add(playlist);
+
+            await SaveAsync();
+        }
+
+        public async Task DeleteFromDbxAsync(int sID, int accountID)
+        {
+            var entity = await _dbContext.Songs.FindAsync(sID);
+            
+            _dbContext.Songs.Remove(entity);
+
+            var accountStorage = _dbContext.AccountStorages.Find(accountID, (int)StorageType.Dropbox);
+
+            DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
+
+            using var dbx = new DropboxClient(dbxJson.JwtToken);
+
+            await dbx.Files.DeleteV2Async(entity.StorageSongID);
+            
+            var files = await dbx.Files.ListFolderAsync("");
+
+            dbxJson.Cursor = files.Cursor;
+
+            accountStorage.JsonData = JsonConvert.SerializeObject(dbxJson);
+
+            await SaveAsync();
+        }
+
         public async Task<IEnumerable<Song>> GetAllAsync(int accountID)
         {
-            return await _dbContext.Songs.Where(s => s.AccountID == accountID).ToListAsync();
+            return await _dbContext.Songs.Where(s => s.AccountID == accountID).Include(s => s.Playlists).ToListAsync();
         }
         public async Task<Song> GetByIdAsync(int id)
         {
@@ -52,15 +86,13 @@ namespace Garmusic.Repositories
             }
             await SaveAsync();
         }
-
         public async Task PostAsync(Song song)
         {
             await _dbContext.Songs.AddAsync(song);
         }
-
-        public async Task PostToDbxAsync(IFormFile file, int accountId)
+        public async Task<Song> PostToDbxAsync(IFormFile file, int accountId)
         {
-            var accountStorage = _dbContext.AccountStorages.Find(new object[] { accountId, (int)StorageType.Dropbox });
+            var accountStorage = _dbContext.AccountStorages.Find(accountId, (int)StorageType.Dropbox );
             
             DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
 
@@ -76,10 +108,22 @@ namespace Garmusic.Repositories
                 AccountID = accountId,
                 Name = file.FileName,
                 StorageSongID = uploaded.Id,
-                StorageID = (int)StorageType.Dropbox
+                StorageID = (int)StorageType.Dropbox,
+                Playlists = new List<Playlist>()
             };
 
             await PostAsync(song);
+
+            await SaveAsync();
+
+            return song;
+        }
+        public async Task RemovePlaylistAsync(int sID, int plID)
+        {
+            var song = await _dbContext.Songs.Include(s => s.Playlists).SingleOrDefaultAsync(s => s.Id == sID);
+            var playlist = await _dbContext.Playlists.FindAsync(plID);
+
+            song.Playlists.Remove(playlist);
 
             await SaveAsync();
         }

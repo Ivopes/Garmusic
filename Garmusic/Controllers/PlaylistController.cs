@@ -19,7 +19,6 @@ namespace Garmusic.Controllers
         {
             _playlistService = playlistService;
         }
-        // GET: api/<PlaylistController>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Playlist>>> GetAllAsync()
         {
@@ -30,17 +29,25 @@ namespace Garmusic.Controllers
                 return BadRequest();
             }
 
-            return Ok(await _playlistService.GetAllAsync(accountId));
-        }
+            var result = await _playlistService.GetAllAsync(accountId);
 
-        // GET api/<PlaylistController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+            return Ok(result);
+        }
+        [HttpGet("songs/{id}")]
+        public async Task<ActionResult<IEnumerable<Song>>> GetSongsById(int id)
         {
-            return "value";
-        }
+            int accountId = GetIdFromRequest();
 
-        // POST api/<PlaylistController>
+            if (accountId == -1)
+            {
+                return BadRequest(null);
+            }
+
+            var result = await _playlistService.GetSongsById(id);
+
+            return Ok(result);
+
+        }
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] Playlist playlist)
         {
@@ -57,17 +64,10 @@ namespace Garmusic.Controllers
             
             return Ok();
         }
-
-        // PUT api/<PlaylistController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<PlaylistController>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+
         }
         private int GetIdFromRequest()
         {
