@@ -20,12 +20,13 @@ using Garmusic.Utilities;
 using Microsoft.IdentityModel.Protocols;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Configuration;
+using System.Net.Mime;
 
 namespace Garmusic.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class SongController : ControllerBase
     {       
 
@@ -94,6 +95,20 @@ namespace Garmusic.Controllers
         public async Task<ActionResult<Song>> GetByIdAsync(int id)
         {
             return await _songService.GetByIdAsync(id);
+        }
+        [HttpGet("file/{id}")]
+        public async Task<ActionResult> GetFileByIdAsync(int id)
+        {
+            int accountId = GetIdFromRequest();
+
+            /*if (accountId == -1)
+            {
+                return BadRequest();
+            }*/
+            accountId = 1;
+            var result = await _songService.GetFileByIdAsync(id, accountId);
+            
+            return File(result, "audio/mpeg");
         }
         [HttpGet("pl/{sID}/{plID}")]
         public async Task<ActionResult> AddSongToPlaylistAsync(int sID, int plID)

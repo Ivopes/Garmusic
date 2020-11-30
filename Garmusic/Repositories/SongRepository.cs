@@ -63,6 +63,24 @@ namespace Garmusic.Repositories
         {
             return await _dbContext.Songs.FindAsync(id);
         }
+
+        public async Task<byte[]> GetFileByIdAsync(int sID, int accountId)
+        {
+            var song = await _dbContext.Songs.FindAsync(sID);
+
+            var accountStorage = _dbContext.AccountStorages.Find(accountId, (int)StorageType.Dropbox);
+
+            DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
+
+            using var dbx = new DropboxClient(dbxJson.JwtToken);
+
+            var file = await dbx.Files.DownloadAsync(song.StorageSongID);
+
+            var bytes = await file.GetContentAsByteArrayAsync();
+
+            return bytes;
+        }
+
         public async Task MigrateSongs(string token, string cursor)
         {
             using var dbx = new DropboxClient(token);

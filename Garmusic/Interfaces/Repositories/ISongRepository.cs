@@ -17,6 +17,7 @@ namespace Garmusic.Interfaces.Repositories
         Task AddSongToPlaylistAsync(int sID, int plID);
         Task RemovePlaylistAsync(int sID, int plID);
         Task DeleteFromDbxAsync(int sID, int accountID);
+        Task<byte[]> GetFileByIdAsync(int sID, int accountID);
         Task SaveAsync();
     }
 }
