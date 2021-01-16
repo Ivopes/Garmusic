@@ -1,6 +1,7 @@
 ﻿using Garmusic.Interfaces.Repositories;
 using Garmusic.Interfaces.Services;
 using Garmusic.Models;
+using Garmusic.Models.EntitiesWatch;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -56,6 +57,11 @@ namespace Garmusic.Services.Dependencies
         public async Task<byte[]> GetFileByIdAsync(int sID, int accountID)
         {
             return await _songRepo.GetFileByIdAsync(sID, accountID);
+        }
+
+        public async Task<IEnumerable<SongWatch>> GetAllWatchAsync(int accountID)
+        {
+            return await _songRepo.GetAllWatchAsync(accountID);
         }
     }
 }

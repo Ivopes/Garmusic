@@ -3,6 +3,7 @@ using Dropbox.Api.Files;
 using Garmusic.Interfaces.Repositories;
 using Garmusic.Models;
 using Garmusic.Models.Entities;
+using Garmusic.Models.EntitiesWatch;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -59,6 +60,25 @@ namespace Garmusic.Repositories
         {
             return await _dbContext.Songs.Where(s => s.AccountID == accountID).Include(s => s.Playlists).ToListAsync();
         }
+
+        public async Task<IEnumerable<SongWatch>> GetAllWatchAsync(int accountID)
+        {
+            var songs = await GetAllAsync(accountID);
+
+            List<SongWatch> sw = new List<SongWatch>();
+
+            foreach (var song in songs)
+            {
+                sw.Add(new SongWatch()
+                {
+                    Id = song.Id,
+                    Name = song.Name
+                });
+            }
+
+            return sw;
+        }
+
         public async Task<Song> GetByIdAsync(int id)
         {
             return await _dbContext.Songs.FindAsync(id);

@@ -1,6 +1,7 @@
 ﻿using Garmusic.Interfaces.Repositories;
 using Garmusic.Interfaces.Services;
 using Garmusic.Models;
+using Garmusic.Models.EntitiesWatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,11 @@ namespace Garmusic.Services.Dependencies
         public async Task<IEnumerable<Playlist>> GetAllAsync(int accountId)
         {
             return await _playlistRepository.GetAllAsync(accountId);
+        }
+
+        public async Task<IEnumerable<PlaylistWatch>> GetAllWatchAsync(int accountId)
+        {
+            return await _playlistRepository.GetAllWatchAsync(accountId);
         }
 
         public async Task<IEnumerable<Song>> GetSongsById(int id)

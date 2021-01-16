@@ -1,4 +1,5 @@
 ﻿using Garmusic.Models;
+using Garmusic.Models.EntitiesWatch;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ namespace Garmusic.Interfaces.Repositories
     public interface ISongRepository
     {
         Task<IEnumerable<Song>> GetAllAsync(int accountID);
+        Task<IEnumerable<SongWatch>> GetAllWatchAsync(int accountID);
         Task<Song> GetByIdAsync(int id);
         Task<Song> PostToDbxAsync(IFormFile file, int accountId);
         Task PostAsync(Song song);

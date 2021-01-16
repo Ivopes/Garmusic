@@ -1,5 +1,6 @@
 ﻿using Garmusic.Interfaces.Repositories;
 using Garmusic.Models;
+using Garmusic.Models.EntitiesWatch;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,24 @@ namespace Garmusic.Repositories
         public async Task<IEnumerable<Playlist>> GetAllAsync(int accountId)
         {
             return await _dbContext.Playlists.Where(pl => pl.AccountID == accountId).Include(pl => pl.Songs).ToListAsync();
+        }
+
+        public async Task<IEnumerable<PlaylistWatch>> GetAllWatchAsync(int accountId)
+        {
+            var playlists = await GetAllAsync(accountId);
+            List<PlaylistWatch> playlistsWatch = new List<PlaylistWatch>();
+            foreach (var pl in playlists)
+            {
+                var songsWatchIds = pl.Songs.Select(s => s.Id).ToArray();
+
+                playlistsWatch.Add(new PlaylistWatch()
+                {
+                    Id = pl.Id,
+                    Name = pl.Name,
+                    SongsIds = songsWatchIds
+                });
+            }
+            return playlistsWatch;
         }
 
         public async Task<IEnumerable<Song>> GetSongsById(int id)
