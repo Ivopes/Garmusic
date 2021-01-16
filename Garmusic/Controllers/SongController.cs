@@ -1,26 +1,12 @@
 ﻿using System.Threading.Tasks;
-using Dropbox.Api;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using Dropbox.Api.Files;
 using Microsoft.AspNetCore.Http;
 using Garmusic.Models;
-using Microsoft.EntityFrameworkCore;
 using Garmusic.Interfaces.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System;
-using Microsoft.AspNetCore.Authorization;
-using Garmusic.Models.Entities;
-using System.Text;
-using System.IO;
-using Newtonsoft.Json;
-using Garmusic.Utilities;
-using Microsoft.IdentityModel.Protocols;
-using System.Security.Cryptography;
-using Microsoft.Extensions.Configuration;
-using System.Net.Mime;
 
 namespace Garmusic.Controllers
 {
@@ -31,7 +17,7 @@ namespace Garmusic.Controllers
     {       
 
         private readonly ISongService _songService;
-        public SongController(MusicPlayerContext dbContext, ISongService songService)
+        public SongController(ISongService songService)
         {
             _songService = songService;
         }
