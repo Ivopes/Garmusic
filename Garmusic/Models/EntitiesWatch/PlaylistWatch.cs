@@ -9,6 +9,7 @@ namespace Garmusic.Models.EntitiesWatch
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public bool Sync { get; set; }
         public ICollection<int> SongsIds { get; set; }
     }
 }

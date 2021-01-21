@@ -38,22 +38,6 @@ namespace Garmusic.Controllers
             {
                 return NotFound();
             }
-            //var a = songs.ToList();
-            //a.RemoveAt(0);
-            var a = new List<SongWatch>();
-            a.Add(new SongWatch() { Id = 5 });
-            a.Add(new SongWatch() { Id = 6 });
-            a.Add(new SongWatch() { Id = 7 });
-            a.Add(new SongWatch() { Id = 8 });
-            a.Add(new SongWatch() { Id = 9 });
-            //var b = playlists.ToList();
-            var b = new List<PlaylistWatch>();
-            //b.RemoveAt(2);
-            b.Add(new PlaylistWatch() { Id = 0, SongsIds = new List<int>() });
-            b.Add(new PlaylistWatch() { Id = -1 });
-            b.Add(new PlaylistWatch() { Id = -2 });
-            b.Add(new PlaylistWatch() { Id = -3 });
-            b.Add(new PlaylistWatch() { Id = -4 });
 
             var result = new { songs = songs, playlists = playlists};
             
