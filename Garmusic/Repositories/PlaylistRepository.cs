@@ -33,13 +33,14 @@ namespace Garmusic.Repositories
                 {
                     Id = pl.Id,
                     Name = pl.Name,
-                    SongsIds = songsWatchIds
+                    SongsIds = songsWatchIds,
+                    Sync = pl.Sync
                 });
             }
             return playlistsWatch;
         }
 
-        public async Task<IEnumerable<Song>> GetSongsById(int id)
+        public async Task<IEnumerable<Song>> GetSongsByIdAsync(int id)
         {
             return await _dbContext.Playlists.Where(pl => pl.Id == id).Include(pl => pl.Songs).Select(pl => pl.Songs).SingleOrDefaultAsync();
         }
@@ -53,6 +54,18 @@ namespace Garmusic.Repositories
         public async Task SaveAsync()
         {
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateSyncAsync(IEnumerable<Playlist> playlists)
+        {
+            foreach (var pl in playlists)
+            {
+                var entity = _dbContext.Playlists.Find(pl.Id);
+
+                entity.Sync = pl.Sync;
+            }
+
+            await SaveAsync();
         }
     }
 }

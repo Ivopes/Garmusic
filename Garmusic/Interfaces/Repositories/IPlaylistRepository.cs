@@ -12,6 +12,7 @@ namespace Garmusic.Interfaces.Repositories
         Task<IEnumerable<Playlist>> GetAllAsync(int accountId);
         Task<IEnumerable<PlaylistWatch>> GetAllWatchAsync(int accountId);
         Task PostAsync(Playlist playlist);
-        Task<IEnumerable<Song>> GetSongsById(int id);
+        Task<IEnumerable<Song>> GetSongsByIdAsync(int id);
+        Task UpdateSyncAsync(IEnumerable<Playlist> playlists);
     }
 }
