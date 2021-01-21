@@ -7,6 +7,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using Garmusic.Models.EntitiesWatch;
 using Newtonsoft.Json;
+using System.IO;
+using System.Text;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -45,7 +47,7 @@ namespace Garmusic.Controllers
                 return BadRequest(null);
             }
 
-            var result = await _playlistService.GetSongsById(id);
+            var result = await _playlistService.GetSongsByIdAsync(id);
 
             return Ok(result);
 
@@ -64,23 +66,6 @@ namespace Garmusic.Controllers
 
             await _playlistService.PostAsync(playlist);
             
-            return Ok();
-        }
-        [HttpPut]
-        public async Task<ActionResult> Put([FromBody] ICollection<PlaylistWatch> playlists)
-        {
-            /*int accountId = GetIdFromRequest();
-
-            if (accountId == -1)
-            {
-                return BadRequest();
-            }*/
-            int accountId = 1;
-
-            ICollection<PlaylistWatch> pl = new List<PlaylistWatch>() { new PlaylistWatch(), new PlaylistWatch()};
-
-            var json = JsonConvert.SerializeObject(pl);
-
             return Ok();
         }
         [HttpDelete("{id}")]
