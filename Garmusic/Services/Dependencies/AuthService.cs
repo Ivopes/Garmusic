@@ -28,6 +28,11 @@ namespace Garmusic.Services.Dependencies
             return await _authRepository.LoginAsync(account);
         }
 
+        public async Task<string> LoginWatchAsync(Account account)
+        {
+            return await _authRepository.LoginWatchAsync(account);
+        }
+
         public async Task<string> RegisterAsync(Account account)
         {
             return await _authRepository.RegisterAsync(account);

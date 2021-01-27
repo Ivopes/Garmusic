@@ -45,6 +45,23 @@ namespace Garmusic.Controllers
 
             return Ok(new { token = jwtToken });
         }
+        [HttpPost("Login/Watch")]
+        public async Task<ActionResult> LoginWatchAsync([FromBody] Account account)
+        {
+            if (account == null)
+            {
+                return BadRequest("Invalid client request");
+            }
+
+            string jwtToken = await _authService.LoginAsync(account);
+
+            if (jwtToken == "")
+            {
+                return Unauthorized();
+            }
+
+            return Ok(new { token = jwtToken });
+        }
         [HttpPost("register")]
         public async Task<ActionResult> RegisterAsync([FromBody] Account account)
         {

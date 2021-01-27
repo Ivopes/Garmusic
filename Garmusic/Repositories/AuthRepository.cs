@@ -72,6 +72,38 @@ namespace Garmusic.Repositories
             }
             return token;
         }
+
+        public async Task<string> LoginWatchAsync(Account account)
+        {
+            string token = "";
+
+            Account entity = await _dbContext.Accounts.SingleOrDefaultAsync(acc => acc.Username == account.Username);
+
+            if (entity != null)
+            {
+                byte[] passHash = PasswordUtility.HashPassword(account.Password, entity.PasswordSalt);
+
+                if (Enumerable.SequenceEqual(entity.PasswordHash, passHash))
+                {
+                    var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetValue<string>("JwtSecretKey")));
+                    var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+                    var claims = new List<Claim>();
+                    claims.Add(new Claim("uid", entity.AccountID.ToString()));
+
+                    var tokenOptions = new JwtSecurityToken(
+                        issuer: _config.GetValue<string>("ServerAdress"),
+                        claims: claims,
+                        expires: DateTime.Now.AddYears(1),
+                        signingCredentials: signinCredentials
+                        );
+
+                    token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+                }
+            }
+            return token;
+        }
+
         public async Task<string> RegisterAsync(Account account)
         {
             string response = "";
