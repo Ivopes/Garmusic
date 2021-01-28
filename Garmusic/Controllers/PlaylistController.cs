@@ -37,6 +37,22 @@ namespace Garmusic.Controllers
 
             return Ok(result);
         }
+        [HttpGet("{plId}")]
+        public async Task<ActionResult<Playlist>> GetByIdAsync(int plId)
+        {
+            int accountId = GetIdFromRequest();
+
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            var pls = await _playlistService.GetAllAsync(accountId);
+
+            var result = pls.FirstOrDefault(pls => pls.Id == plId);
+
+            return Ok(result);
+        }
         [HttpGet("songs/{id}")]
         public async Task<ActionResult<IEnumerable<Song>>> GetSongsById(int id)
         {

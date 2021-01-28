@@ -1,6 +1,7 @@
 ﻿using Garmusic.Interfaces.Repositories;
 using Garmusic.Interfaces.Services;
 using Garmusic.Models;
+using Garmusic.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,9 +25,9 @@ namespace Garmusic.Services.Dependencies
         {
             return await _accRepo.GetAllAsync();
         }
-        public Task<Account> GetByIdAsync(int id)
+        public async Task<AccountWeb> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _accRepo.GetByIdAsync(id);
         }
     }
 }

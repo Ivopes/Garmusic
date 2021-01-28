@@ -1,4 +1,5 @@
 ﻿using Garmusic.Models;
+using Garmusic.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Garmusic.Interfaces.Repositories
     public interface IAccountRepository
     {
         Task<IEnumerable<Account>> GetAllAsync();
-        Task<Account> GetByIdAsync(int id);
+        Task<AccountWeb> GetByIdAsync(int id);
         Task PostAsync(Account account);
         Task SaveAsync();
     }

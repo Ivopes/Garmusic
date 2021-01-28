@@ -20,7 +20,6 @@ namespace Garmusic.Repositories
         {
             return await _dbContext.Playlists.Where(pl => pl.AccountID == accountId).Include(pl => pl.Songs).ToListAsync();
         }
-
         public async Task<IEnumerable<PlaylistWatch>> GetAllWatchAsync(int accountId)
         {
             var playlists = await GetAllAsync(accountId);
@@ -39,7 +38,6 @@ namespace Garmusic.Repositories
             }
             return playlistsWatch;
         }
-
         public async Task<IEnumerable<Song>> GetSongsByIdAsync(int id)
         {
             return await _dbContext.Playlists.Where(pl => pl.Id == id).Include(pl => pl.Songs).Select(pl => pl.Songs).SingleOrDefaultAsync();

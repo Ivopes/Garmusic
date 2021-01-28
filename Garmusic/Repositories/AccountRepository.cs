@@ -22,9 +22,25 @@ namespace Garmusic.Repositories
         {
             return await _dbContext.Accounts.Include(a => a.AccountStorages).ToListAsync();
         }
-        public Task<Account> GetByIdAsync(int id)
+        public async Task<AccountWeb> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var entity = await _dbContext.Accounts.Include(acc => acc.AccountStorages).ThenInclude(acs => acs.Storage).SingleOrDefaultAsync(acc => acc.AccountID == id);
+
+            AccountWeb acc = null;
+
+            if (entity is not null)
+            {
+                acc = new AccountWeb()
+                {
+                    Username = entity.Username,
+                    FirstName = entity.FirstName,
+                    LastName = entity.LastName,
+                    Email = entity.Email,
+                    Storage = entity.AccountStorages.Select(acs => acs.Storage).ToList()
+                };
+            }
+
+            return acc;
         }
         public Task PostAsync(Account song)
         {
