@@ -24,6 +24,8 @@ namespace Garmusic.Services
             services.AddTransient<IAuthRepository, AuthRepository>();
             services.AddTransient<IPlaylistService, PlaylistService>();
             services.AddTransient<IPlaylistRepository, PlaylistRepository>();
+            services.AddTransient<IStorageService, StorageService>();
+            services.AddTransient<IStorageRepository, StorageRepository>();
 
             return services;
         }
