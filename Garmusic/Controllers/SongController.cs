@@ -33,7 +33,7 @@ namespace Garmusic.Controllers
 
             var result = await _songService.GetAllAsync(accountId);
 
-            if(result == null)
+            if(result is null)
             {
                 return NotFound();
             }

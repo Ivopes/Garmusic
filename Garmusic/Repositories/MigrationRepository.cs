@@ -71,7 +71,7 @@ namespace Garmusic.Repositories
 
                 DropboxJson json = JsonConvert.DeserializeObject<DropboxJson>(acc.AccountStorages[0].JsonData);
 
-                if (json == null)
+                if (json is null)
                 {
                     continue;
                 }
@@ -97,7 +97,7 @@ namespace Garmusic.Repositories
         {
             AccountStorage entity = await _dbContext.AccountStorages.FindAsync(accountId, (int)storageType);
 
-            if (entity == null)
+            if (entity is null)
             {
                 return;
             }

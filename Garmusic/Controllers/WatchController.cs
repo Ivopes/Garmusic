@@ -38,7 +38,7 @@ namespace Garmusic.Controllers
             var songs = await _songService.GetAllWatchAsync(accountId);
             var playlists = await _playlistService.GetAllWatchAsync(accountId);
 
-            if (songs == null || playlists == null)
+            if (songs is null || playlists is null)
             {
                 return NotFound();
             }

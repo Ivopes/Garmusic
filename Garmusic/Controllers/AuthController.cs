@@ -31,7 +31,7 @@ namespace Garmusic.Controllers
         [HttpPost("Login")]
         public async Task<ActionResult> LoginAsync([FromBody] Account account)
         {
-            if (account == null)
+            if (account is null)
             {
                 return BadRequest("Invalid client request");
             }
@@ -48,7 +48,7 @@ namespace Garmusic.Controllers
         [HttpPost("Login/Watch")]
         public async Task<ActionResult> LoginWatchAsync([FromBody] Account account)
         {
-            if (account == null)
+            if (account is null)
             {
                 return BadRequest("Invalid client request");
             }
@@ -65,7 +65,7 @@ namespace Garmusic.Controllers
         [HttpPost("register")]
         public async Task<ActionResult> RegisterAsync([FromBody] Account account)
         {
-            if (account == null)
+            if (account is null)
             {
                 return BadRequest("Invalid client request");
             }
