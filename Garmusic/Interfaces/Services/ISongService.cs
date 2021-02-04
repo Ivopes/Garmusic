@@ -10,20 +10,77 @@ namespace Garmusic.Interfaces.Services
 {
     public interface ISongService
     {
+        /// <summary>
+        /// Get list of all Songs by account ID from storage
+        /// </summary>
+        /// <param name="accountID">ID of account to look for</param>
+        /// <returns>List of songs</returns>
         Task<IEnumerable<Song>> GetAllAsync(int accountID);
+        /// <summary>
+        /// Get list of all Songs by account ID for watch from storage
+        /// </summary>
+        /// <param name="accountID">ID of account to look for</param>
+        /// <returns>List of songs for watch</returns>
         Task<IEnumerable<SongWatch>> GetAllWatchAsync(int accountID);
-        Task<Song> GetByIdAsync(int id);
+        /// <summary>
+        /// Get Songs by song ID from storage
+        /// </summary>
+        /// <param name="sID">song ID to look for</param>
+        /// <returns>Song</returns>
+        Task<Song> GetByIdAsync(int sID);
+        /// <summary>
+        /// Upload file to dbx to specified account
+        /// </summary>
+        /// <param name="file">File to upload</param>
+        /// <param name="accountID">Accound ID to which upload the file</param>
+        /// <returns>Song which was uploaded</returns>
         Task<Song> PostToDbxAsync(IFormFile file, int accountID);
+        /// <summary>
+        /// Post Song to database
+        /// </summary>
+        /// <param name="song">song to post</param>
+        /// <returns></returns>
         Task PostAsync(Song song);
+        /// <summary>
+        /// Add Song to Playlist in storage
+        /// </summary>
+        /// <param name="sID">Song ID</param>
+        /// <param name="plID">Playlist ID</param>
+        /// <returns></returns>
         Task AddSongToPlaylistAsync(int sID, int plID);
+        /// <summary>
+        /// Removes Song from Playlist in storage
+        /// </summary>
+        /// <param name="sID">Song ID</param>
+        /// <param name="plID">Playlist ID</param>
+        /// <returns></returns>
         Task RemovePlaylistAsync(int sID, int plID);
+        /// <summary>
+        /// Deletes file from dbx
+        /// </summary>
+        /// <param name="sID">Song ID to delete</param>
+        /// <param name="accountID">Account ID to which is Song linked</param>
+        /// <returns></returns>
         Task DeleteFromDbxAsync(int sID, int accountID);
-        Task<byte[]> GetFileByIdAsync(int sID, int accountID);
+        /// <summary>
+        /// Get file from dbx
+        /// </summary>
+        /// <param name="sID">Song ID to get</param>
+        /// <param name="accountID">Account ID to which is Song linked</param>
+        /// <returns>File content</returns>
+        Task<byte[]> GetDbxFileByIdAsync(int sID, int accountID);
+        /// <summary>
+        /// Is Song and Playlist linked with Account?
+        /// </summary>
+        /// <param name="accountID">Account ID to check</param>
+        /// <param name="sID">Song ID to check</param>
+        /// <param name="plID">Playlist ID to check</param>
+        /// <returns>Can user modify?</returns>
         Task<bool> CanModify(int accountID, int sID, int plID);
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="accountID">IDs of the users in storage system</param>
+        /// <param name="accountIDs">IDs of the users in storage system</param>
         /// <returns></returns>
         Task MigrateSongs(ICollection<string> accountIDs);
     }

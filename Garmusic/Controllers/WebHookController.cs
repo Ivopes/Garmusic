@@ -27,6 +27,11 @@ namespace Garmusic.Controllers
             _accService = accountService;
             _migService = migrationService;
         }
+        /// <summary>
+        /// echoes request from Dbx to make Dbx sure we are ready to accept it
+        /// </summary>
+        /// <param name="challenge"></param>
+        /// <returns>echo with request</returns>
         [HttpGet("Dropbox")]
         public ActionResult<string> Dropbox(string challenge)
         {
@@ -39,13 +44,13 @@ namespace Garmusic.Controllers
             {
                 return Unauthorized();
             }
-            string signature = signatureHeader.FirstOrDefault();
-
             string body = await ResponseUtility.BodyStreamToStringAsync(Request.Body, (int)Request.ContentLength);
 
             using var sha = new HMACSHA256(Encoding.UTF8.GetBytes(_config.GetValue<string>("DropboxSecret")));
 
             var hashedBody = BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(body))).Replace("-", "").ToLower();
+
+            string signature = signatureHeader.FirstOrDefault();
 
             if (hashedBody != signature)
             {

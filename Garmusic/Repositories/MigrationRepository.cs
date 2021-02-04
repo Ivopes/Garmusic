@@ -23,7 +23,7 @@ namespace Garmusic.Repositories
         }
         public async Task DropboxWebhookMigrationAsync(IEnumerable<string> storageAccountsIDs)
         {
-            //TODO: update in EF core 5.0
+            
             //var accounts = await _dbContext.Accounts.Include(a => a.AccountStorages.Where(acs => acs.StorageID == (int)StorageType.Dropbox )).ToListAsync();
             //var accounts = await _dbContext.Accounts.Include(a => a.AccountStorages).AsNoTracking().ToListAsync();
 
@@ -135,7 +135,6 @@ namespace Garmusic.Repositories
                 else
                 {
                     //var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.Name == song.Name);
-                    //TODO dobry cast?
                     Song entity = new Song()
                     {
                         AccountID = accountId,

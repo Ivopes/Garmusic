@@ -33,7 +33,6 @@ namespace Garmusic.Services.Dependencies
         {
             await _songRepo.MigrateSongs("", "");
         }
-
         public async Task PostAsync(Song song)
         {
             await _songRepo.PostAsync(song);
@@ -54,9 +53,9 @@ namespace Garmusic.Services.Dependencies
             await _songRepo.DeleteFromDbxAsync(sID, accountID);
         }
 
-        public async Task<byte[]> GetFileByIdAsync(int sID, int accountID)
+        public async Task<byte[]> GetDbxFileByIdAsync(int sID, int accountID)
         {
-            return await _songRepo.GetFileByIdAsync(sID, accountID);
+            return await _songRepo.GetDbxFileByIdAsync(sID, accountID);
         }
 
         public async Task<IEnumerable<SongWatch>> GetAllWatchAsync(int accountID)

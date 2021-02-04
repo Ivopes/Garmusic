@@ -79,12 +79,12 @@ namespace Garmusic.Repositories
             return sw;
         }
 
-        public async Task<Song> GetByIdAsync(int id)
+        public async Task<Song> GetByIdAsync(int sID)
         {
-            return await _dbContext.Songs.FindAsync(id);
+            return await _dbContext.Songs.FindAsync(sID);
         }
 
-        public async Task<byte[]> GetFileByIdAsync(int sID, int accountId)
+        public async Task<byte[]> GetDbxFileByIdAsync(int sID, int accountId)
         {
             var accountStorage = await _dbContext.AccountStorages.FindAsync(accountId, (int)StorageType.Dropbox);
 

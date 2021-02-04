@@ -64,7 +64,7 @@ namespace Garmusic.Controllers
                 return BadRequest(null);
             }
 
-            var result = await _playlistService.GetSongsByIdAsync(id);
+            var result = await _playlistService.GetSongsByPlIdAsync(id);
 
             return Ok(result);
 

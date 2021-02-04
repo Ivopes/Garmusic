@@ -93,7 +93,7 @@ namespace Garmusic.Controllers
                 return BadRequest();
             }
             //accountId = 1;
-            var result = await _songService.GetFileByIdAsync(id, accountId);
+            var result = await _songService.GetDbxFileByIdAsync(id, accountId);
             
             return File(result, "audio/mpeg");
         }
@@ -109,7 +109,7 @@ namespace Garmusic.Controllers
 
             if (!await _songService.CanModify(accountId, sID, plID))
             {
-                return BadRequest();
+                return Unauthorized();
             }
 
             await _songService.AddSongToPlaylistAsync(sID, plID);
@@ -128,7 +128,7 @@ namespace Garmusic.Controllers
 
             if (!await _songService.CanModify(accountId, sID, plID))
             {
-                return BadRequest();
+                return Unauthorized();
             }
 
             await _songService.RemovePlaylistAsync(sID, plID);

@@ -17,7 +17,7 @@ namespace Garmusic.Services.Dependencies
         {
             _accRepo = accountRepository;
         }
-        public Task AddAsync(Account account)
+        public Task PostAsync(Account account)
         {
             throw new NotImplementedException();
         }

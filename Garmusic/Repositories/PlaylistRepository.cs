@@ -38,7 +38,7 @@ namespace Garmusic.Repositories
             }
             return playlistsWatch;
         }
-        public async Task<IEnumerable<Song>> GetSongsByIdAsync(int id)
+        public async Task<IEnumerable<Song>> GetSongsByPlIdAsync(int id)
         {
             return await _dbContext.Playlists.Where(pl => pl.Id == id).Include(pl => pl.Songs).Select(pl => pl.Songs).SingleOrDefaultAsync();
         }
