@@ -7,6 +7,7 @@ using Garmusic.Interfaces.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System;
+using Garmusic.Utilities;
 
 namespace Garmusic.Controllers
 {
@@ -24,7 +25,7 @@ namespace Garmusic.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Song>>> GetAllAsync()
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
             {
@@ -33,7 +34,7 @@ namespace Garmusic.Controllers
 
             var result = await _songService.GetAllAsync(accountId);
 
-            if(result is null)
+            if (result is null)
             {
                 return NotFound();
             }
@@ -43,7 +44,7 @@ namespace Garmusic.Controllers
         [HttpPost]
         public async Task<ActionResult<Song>> PostAsync([FromForm] IFormFile file)
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
             {
@@ -66,7 +67,7 @@ namespace Garmusic.Controllers
         [HttpDelete("{sID}")]
         public async Task<ActionResult> DeleteAsync(int sID)
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
             {
@@ -85,13 +86,13 @@ namespace Garmusic.Controllers
         [HttpGet("file/{id}")]
         public async Task<ActionResult> GetFileByIdAsync(int id)
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
-            /*if (accountId == -1)
+            if (accountId == -1)
             {
                 return BadRequest();
-            }*/
-            accountId = 1;
+            }
+            //accountId = 1;
             var result = await _songService.GetFileByIdAsync(id, accountId);
             
             return File(result, "audio/mpeg");
@@ -99,9 +100,14 @@ namespace Garmusic.Controllers
         [HttpGet("pl/{sID}/{plID}")]
         public async Task<ActionResult> AddSongToPlaylistAsync(int sID, int plID)
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            if (!await _songService.CanModify(accountId, sID, plID))
             {
                 return BadRequest();
             }
@@ -113,9 +119,14 @@ namespace Garmusic.Controllers
         [HttpDelete("pl/{sID}/{plID}")]
         public async Task<ActionResult> RemovePlaylistsAsync(int sID, int plID)
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            if (!await _songService.CanModify(accountId, sID, plID))
             {
                 return BadRequest();
             }
@@ -123,17 +134,6 @@ namespace Garmusic.Controllers
             await _songService.RemovePlaylistAsync(sID, plID);
 
             return Ok();
-        }
-        private int GetIdFromRequest()
-        {
-            int accountId = -1;
-            if (Request.Headers.TryGetValue("Authorization", out var token))
-            {
-                var a = new JwtSecurityTokenHandler().ReadJwtToken(token[0].Substring(7));
-                var b = a.Payload.Claims;
-                accountId = int.Parse(b.FirstOrDefault(b => b.Type == "uid").Value);
-            }
-            return accountId;
         }
     }
 }

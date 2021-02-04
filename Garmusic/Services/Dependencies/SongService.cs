@@ -63,5 +63,9 @@ namespace Garmusic.Services.Dependencies
         {
             return await _songRepo.GetAllWatchAsync(accountID);
         }
+        public async Task<bool> CanModify(int accountID, int sID, int plID)
+        {
+            return await _songRepo.CanModify(accountID, sID, plID);
+        }
     }
 }

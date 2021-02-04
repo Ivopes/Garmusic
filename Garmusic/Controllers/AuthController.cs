@@ -82,7 +82,7 @@ namespace Garmusic.Controllers
         [HttpPost("registerDropbox")]
         public async Task<ActionResult> RegisterDropboxAsync([FromBody] DropboxJson json)
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
             if(accountId == -1)
             {
                 return BadRequest();
@@ -97,7 +97,7 @@ namespace Garmusic.Controllers
         [HttpGet("getDropboxJwt")]
         public async Task<ActionResult<string>> GetDropboxJwtAsync()
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
             if (accountId == -1)
             {
                 return BadRequest();
@@ -106,17 +106,6 @@ namespace Garmusic.Controllers
             string jwtToken = await _authService.GetDropboxJwtAsync(accountId);
 
             return Ok(new { token = jwtToken });
-        }
-        private int GetIdFromRequest()
-        {
-            int accountId = -1;
-            if (Request.Headers.TryGetValue("Authorization", out var token))
-            {
-                var a = new JwtSecurityTokenHandler().ReadJwtToken(token[0].Substring(7));
-                var b = a.Payload.Claims;
-                accountId = int.Parse(b.FirstOrDefault(b => b.Type == "uid").Value);
-            }
-            return accountId;
         }
     }
 }

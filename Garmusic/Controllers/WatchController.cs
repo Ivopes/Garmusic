@@ -27,7 +27,7 @@ namespace Garmusic.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            /*int accountId = GetIdFromRequest();
+            /*int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
              if (accountId == -1)
              {
@@ -50,7 +50,7 @@ namespace Garmusic.Controllers
         [HttpPut]
         public async Task<ActionResult> Put()
         {
-            /*int accountId = GetIdFromRequest();
+            /*int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
             {
@@ -92,17 +92,6 @@ namespace Garmusic.Controllers
             await _playlistService.UpdateSyncAsync(playlists);
 
             return Ok();
-        }
-        private int GetIdFromRequest()
-        {
-            int accountId = -1;
-            if (Request.Headers.TryGetValue("Authorization", out var token))
-            {
-                var a = new JwtSecurityTokenHandler().ReadJwtToken(token[0].Substring(7));
-                var b = a.Payload.Claims;
-                accountId = int.Parse(b.FirstOrDefault(b => b.Type == "uid").Value);
-            }
-            return accountId;
         }
     }
 }

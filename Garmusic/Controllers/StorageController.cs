@@ -1,5 +1,6 @@
 ﻿using Garmusic.Interfaces.Services;
 using Garmusic.Models.Entities;
+using Garmusic.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -22,7 +23,7 @@ namespace Garmusic.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Storage>>> GetAllAsync()
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
             {
@@ -32,17 +33,6 @@ namespace Garmusic.Controllers
             var result = await _storageService.GetAllAsync();
 
             return Ok(result);
-        }
-        private int GetIdFromRequest()
-        {
-            int accountId = -1;
-            if (Request.Headers.TryGetValue("Authorization", out var token))
-            {
-                var a = new JwtSecurityTokenHandler().ReadJwtToken(token[0].Substring(7));
-                var b = a.Payload.Claims;
-                accountId = int.Parse(b.FirstOrDefault(b => b.Type == "uid").Value);
-            }
-            return accountId;
         }
     }
 }

@@ -9,6 +9,7 @@ using Garmusic.Models.EntitiesWatch;
 using Newtonsoft.Json;
 using System.IO;
 using System.Text;
+using Garmusic.Utilities;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -26,9 +27,9 @@ namespace Garmusic.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Playlist>>> GetAllAsync()
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
-            if(accountId == -1)
+            if (accountId == -1)
             {
                 return BadRequest();
             }
@@ -40,7 +41,7 @@ namespace Garmusic.Controllers
         [HttpGet("{plId}")]
         public async Task<ActionResult<Playlist>> GetByIdAsync(int plId)
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
             {
@@ -56,7 +57,7 @@ namespace Garmusic.Controllers
         [HttpGet("songs/{id}")]
         public async Task<ActionResult<IEnumerable<Song>>> GetSongsById(int id)
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
             {
@@ -71,7 +72,7 @@ namespace Garmusic.Controllers
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] Playlist playlist)
         {
-            int accountId = GetIdFromRequest();
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
             {
@@ -88,17 +89,6 @@ namespace Garmusic.Controllers
         public void Delete(int id)
         {
 
-        }
-        private int GetIdFromRequest()
-        {
-            int accountId = -1;
-            if (Request.Headers.TryGetValue("Authorization", out var token))
-            {
-                var a = new JwtSecurityTokenHandler().ReadJwtToken(token[0].Substring(7));
-                var b = a.Payload.Claims;
-                accountId = int.Parse(b.FirstOrDefault(b => b.Type == "uid").Value);
-            }
-            return accountId;
         }
     }
 }
