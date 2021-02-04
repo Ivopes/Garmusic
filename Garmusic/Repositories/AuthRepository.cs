@@ -42,6 +42,14 @@ namespace Garmusic.Repositories
 
             return json.JwtToken;
         }
+        public string GetDropboxSecretHashed()
+        {
+            string s = _config.GetValue<string>("DropboxKey") + ":" +_config.GetValue<string>("DropboxSecret");
+
+            string hashed = Convert.ToBase64String(Encoding.UTF8.GetBytes(s));
+
+            return hashed;
+        }
         public async Task<string> LoginAsync(Account account)
         {
             string token = "";
@@ -72,7 +80,6 @@ namespace Garmusic.Repositories
             }
             return token;
         }
-
         public async Task<string> LoginWatchAsync(Account account)
         {
             string token = "";
@@ -103,7 +110,6 @@ namespace Garmusic.Repositories
             }
             return token;
         }
-
         public async Task<string> RegisterAsync(Account account)
         {
             string response = "";

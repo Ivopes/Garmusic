@@ -107,5 +107,18 @@ namespace Garmusic.Controllers
 
             return Ok(new { token = jwtToken });
         }
+        [HttpGet("dbxCodeHash")]
+        public  ActionResult<string> GetDropboxCodeHashed()
+        {
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            string code = _authService.GetDropboxSecretHashed();
+
+            return Ok(code);
+        }
     }
 }

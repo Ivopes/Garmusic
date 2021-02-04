@@ -40,5 +40,10 @@ namespace Garmusic.Interfaces.Repositories
         /// <param name="accountID">Account ID from which take token</param>
         /// <returns>JWT token as string if exist, otherwise empty string</returns>
         Task<string> GetDropboxJwtAsync(int accountID);
+        /// <summary>
+        /// Get the hashed dropbox key and secret for dbxOAuth token url
+        /// </summary>
+        /// <returns>Key:secret in base64</returns>
+        string GetDropboxSecretHashed();
     }
 }

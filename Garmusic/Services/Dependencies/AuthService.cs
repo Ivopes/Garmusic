@@ -23,6 +23,11 @@ namespace Garmusic.Services.Dependencies
             return await _authRepository.GetDropboxJwtAsync(accountId);
         }
 
+        public string GetDropboxSecretHashed()
+        {
+            return _authRepository.GetDropboxSecretHashed();
+        }
+
         public async Task<string> LoginAsync(Account account)
         {
             return await _authRepository.LoginAsync(account);
