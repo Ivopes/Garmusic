@@ -8,6 +8,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System;
 using Garmusic.Utilities;
+using ATL;
+using System.IO;
+using Garmusic.Models.EntitiesWeb;
 
 namespace Garmusic.Controllers
 {
@@ -32,11 +35,26 @@ namespace Garmusic.Controllers
                 return BadRequest();
             }
 
-            var result = await _songService.GetAllAsync(accountId);
+            var songs = await _songService.GetAllAsync(accountId);
 
-            if (result is null)
+            if (songs is null)
             {
                 return NotFound();
+            }
+
+            var result = new List<SongWeb>();
+
+            foreach (var song in songs)
+            {
+                result.Add(new SongWeb()
+                { 
+                    Id = song.Id,
+                    FileName = song.FileName,
+                    Name = song.Name,
+                    Author = song.Author,
+                    LengthSec = song.LengthSec,
+                    Playlists = song.Playlists
+                });
             }
 
             return Ok(result);
@@ -74,7 +92,34 @@ namespace Garmusic.Controllers
                 return BadRequest();
             }
 
+            if (!await _songService.CanModifyAsync(accountId, sID))
+            {
+                return Unauthorized();
+            }
+
             await _songService.DeleteFromDbxAsync(sID, accountId);
+
+            return Ok();
+        }
+        [HttpDelete]
+        public async Task<ActionResult> DeleteRangeAsync([FromBody] List<int> sIDs)
+        {
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            foreach (var id in sIDs)
+            {
+                if (!await _songService.CanModifyAsync(accountId, id))
+                {
+                    return Unauthorized();
+                }
+            }
+
+            await _songService.DeleteRangeFromDbxAsync(sIDs, accountId);
 
             return Ok();
         }
@@ -107,7 +152,7 @@ namespace Garmusic.Controllers
                 return BadRequest();
             }
 
-            if (!await _songService.CanModify(accountId, sID, plID))
+            if (!await _songService.CanModifyAsync(accountId, sID, plID))
             {
                 return Unauthorized();
             }
@@ -126,7 +171,7 @@ namespace Garmusic.Controllers
                 return BadRequest();
             }
 
-            if (!await _songService.CanModify(accountId, sID, plID))
+            if (!await _songService.CanModifyAsync(accountId, sID, plID))
             {
                 return Unauthorized();
             }

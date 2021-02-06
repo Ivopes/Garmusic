@@ -16,6 +16,12 @@ namespace Garmusic.Services.Dependencies
         {
             _playlistRepository = playlistRepository;
         }
+
+        public async Task<bool> CanModifyAsync(int accountID, int pID)
+        {
+            return await _playlistRepository.CanModifyAsync(accountID, pID);
+        }
+
         public async Task<IEnumerable<Playlist>> GetAllAsync(int accountId)
         {
             return await _playlistRepository.GetAllAsync(accountId);
@@ -33,6 +39,11 @@ namespace Garmusic.Services.Dependencies
         public async Task PostAsync(Playlist playlist)
         {
             await _playlistRepository.PostAsync(playlist);
+        }
+
+        public async Task RemoveAsync(int pID)
+        {
+            await _playlistRepository.RemoveAsync(pID);
         }
 
         public async Task UpdateSyncAsync(IEnumerable<Playlist> playlists)

@@ -9,7 +9,10 @@ namespace Garmusic.Models
     public class Song
     {
         public int Id { get; set; }
+        public string FileName { get; set; }
         public string Name { get; set; }
+        public string  Author { get; set; }
+        public int LengthSec { get; set; }
         public int AccountID { get; set; }
         public Account Account { get; set; }
         public int StorageID { get; set; }

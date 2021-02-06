@@ -85,10 +85,24 @@ namespace Garmusic.Controllers
             
             return Ok();
         }
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("{pID}")]
+        public async Task<ActionResult> DeleteAsync(int pID)
         {
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            if (!await _playlistService.CanModifyAsync(accountId, pID))
+            {
+                return Unauthorized();
+            }
+
+            await _playlistService.RemoveAsync(pID);
+
+            return Ok();
         }
     }
 }

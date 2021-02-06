@@ -4,6 +4,7 @@ using Garmusic.Interfaces.Repositories;
 using Garmusic.Models;
 using Garmusic.Models.Entities;
 using Garmusic.Models.EntitiesWatch;
+using Garmusic.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -35,15 +36,16 @@ namespace Garmusic.Repositories
 
         public async Task DeleteFromDbxAsync(int sID, int accountID)
         {
-            var entity = await _dbContext.Songs.FindAsync(sID);
-            
-            _dbContext.Songs.Remove(entity);
 
             var accountStorage = _dbContext.AccountStorages.Find(accountID, (int)StorageType.Dropbox);
 
             DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
 
             using var dbx = new DropboxClient(dbxJson.JwtToken);
+
+            var entity = await _dbContext.Songs.FindAsync(sID);
+            
+            _dbContext.Songs.Remove(entity);
 
             await dbx.Files.DeleteV2Async(entity.StorageSongID);
             
@@ -72,7 +74,7 @@ namespace Garmusic.Repositories
                 sw.Add(new SongWatch()
                 {
                     Id = song.Id,
-                    Name = song.Name
+                    Name = song.FileName
                 });
             }
 
@@ -100,7 +102,7 @@ namespace Garmusic.Repositories
 
             return bytes;
         }
-        public async Task<bool> CanModify(int accountID, int sID, int plID)
+        public async Task<bool> CanModifyAsync(int accountID, int sID, int plID)
         {
             var song = await _dbContext.Songs.FindAsync(sID);
 
@@ -118,29 +120,6 @@ namespace Garmusic.Repositories
             
             return song.AccountID == accountID && pl.AccountID == accountID;
         }
-        public async Task MigrateSongs(string token, string cursor)
-        {
-            using var dbx = new DropboxClient(token);
-
-            //var files = await dbx.Files.ListFolderAsync(string.Empty);
-            
-            var newFiles = await dbx.Files.ListFolderContinueAsync(cursor);
-            List<string> names = new List<string>();
-
-            foreach (var file in newFiles.Entries)
-            {
-                names.Add(file.Name);
-            }
-
-            foreach (var item in names)
-            {
-                await PostAsync(new Song{
-                    AccountID = 1,
-                    Name = item
-                });
-            }
-            await SaveAsync();
-        }
         public async Task PostAsync(Song song)
         {
             await _dbContext.Songs.AddAsync(song);
@@ -152,7 +131,7 @@ namespace Garmusic.Repositories
             DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
 
             using var dbx = new DropboxClient(dbxJson.JwtToken);
-            
+
             var uploaded = await dbx.Files.UploadAsync(
                                                     "/" + file.FileName,
                                                     WriteMode.Add.Instance,
@@ -161,11 +140,15 @@ namespace Garmusic.Repositories
             Song song = new Song()
             {
                 AccountID = accountId,
-                Name = file.FileName,
+                FileName = file.FileName,
                 StorageSongID = uploaded.Id,
                 StorageID = (int)StorageType.Dropbox,
                 Playlists = new List<Playlist>()
             };
+
+            using Stream stream = file.OpenReadStream();
+
+            MetadataUtility.FillMetadata(song, stream);
 
             await PostAsync(song);
 
@@ -185,6 +168,44 @@ namespace Garmusic.Repositories
         public async Task SaveAsync()
         {
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteRangeFromDbxAsync(List<int> sIDs, int accountID)
+        {
+            var accountStorage = _dbContext.AccountStorages.Find(accountID, (int)StorageType.Dropbox);
+
+            DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
+
+            using var dbx = new DropboxClient(dbxJson.JwtToken);
+
+            foreach (var sID in sIDs)
+            {
+                var entity = await _dbContext.Songs.FindAsync(sID);
+
+                _dbContext.Songs.Remove(entity);
+                
+                await dbx.Files.DeleteV2Async(entity.StorageSongID);
+            }
+
+            var files = await dbx.Files.ListFolderAsync("");
+
+            dbxJson.Cursor = files.Cursor;
+
+            accountStorage.JsonData = JsonConvert.SerializeObject(dbxJson);
+
+            await SaveAsync();
+        }
+
+        public async Task<bool> CanModifyAsync(int accountID, int sID)
+        {
+            var song = await _dbContext.Songs.FindAsync(sID);
+
+            if (song is null)
+            {
+                return false;
+            }
+
+            return song.AccountID == accountID;
         }
     }
 }

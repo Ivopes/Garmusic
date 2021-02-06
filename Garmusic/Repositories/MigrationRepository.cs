@@ -126,7 +126,7 @@ namespace Garmusic.Repositories
                 }
                 if (song.IsDeleted)
                 {
-                    var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.Name == song.Name);
+                    var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.FileName == song.Name && s.AccountID == accountId);
                     if(entity != null)
                     {
                         _dbContext.Songs.Remove(entity);
@@ -134,15 +134,25 @@ namespace Garmusic.Repositories
                 }
                 else
                 {
-                    //var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.Name == song.Name);
-                    Song entity = new Song()
+                    // Check if alreaedy exists
+                    var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.FileName == song.Name && s.AccountID == accountId);
+
+                    if (entity is null)
                     {
-                        AccountID = accountId,
-                        Name = song.Name,
-                        StorageID = (int)storageType,
-                        StorageSongID = ((FileMetadata)song).Id
-                    };
-                    await _dbContext.Songs.AddAsync(entity);
+                        entity = new Song()
+                        {
+                            AccountID = accountId,
+                            FileName = song.Name,
+                            StorageID = (int)storageType,
+                            StorageSongID = ((FileMetadata)song).Id
+                        };
+                        
+                        await _dbContext.Songs.AddAsync(entity);
+                    } 
+                    else
+                    {
+                        entity.StorageSongID = ((FileMetadata)song).Id;
+                    }
                 }
             }
         }

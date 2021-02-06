@@ -42,13 +42,6 @@ namespace Garmusic.Interfaces.Repositories
         /// <returns></returns>
         Task PostAsync(Song song);
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="token"></param>
-        /// <param name="cursor"></param>
-        /// <returns></returns>
-        Task MigrateSongs(string token, string cursor);
-        /// <summary>
         /// Add Song to Playlist in storage
         /// </summary>
         /// <param name="sID">Song ID</param>
@@ -70,6 +63,13 @@ namespace Garmusic.Interfaces.Repositories
         /// <returns></returns>
         Task DeleteFromDbxAsync(int sID, int accountID);
         /// <summary>
+        /// Deletes files from dbx
+        /// </summary>
+        /// <param name="sIDs">Songs IDs to delete</param>
+        /// <param name="accountID">Account ID to which is Song linked</param>
+        /// <returns></returns>
+        Task DeleteRangeFromDbxAsync(List<int> sIDs, int accountID);
+        /// <summary>
         /// Get file from dbx
         /// </summary>
         /// <param name="sID">Song ID to get</param>
@@ -83,7 +83,14 @@ namespace Garmusic.Interfaces.Repositories
         /// <param name="sID">Song ID to check</param>
         /// <param name="plID">Playlist ID to check</param>
         /// <returns>Can user modify?</returns>
-        Task<bool> CanModify(int accountID, int sID, int plID);
+        Task<bool> CanModifyAsync(int accountID, int sID, int plID);
+        /// <summary>
+        /// Is Song linked with Account?
+        /// </summary>
+        /// <param name="accountID">Account ID to check</param>
+        /// <param name="sID">Song ID to check</param>
+        /// <returns>Can user modify?</returns>
+        Task<bool> CanModifyAsync(int accountID, int sID);
         /// <summary>
         /// Saves changes made in storage
         /// </summary>

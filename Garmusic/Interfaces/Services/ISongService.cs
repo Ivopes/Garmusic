@@ -63,6 +63,13 @@ namespace Garmusic.Interfaces.Services
         /// <returns></returns>
         Task DeleteFromDbxAsync(int sID, int accountID);
         /// <summary>
+        /// Deletes files from dbx
+        /// </summary>
+        /// <param name="sIDs">Songs IDs to delete</param>
+        /// <param name="accountID">Account ID to which is Song linked</param>
+        /// <returns></returns>
+        Task DeleteRangeFromDbxAsync(List<int> sIDs, int accountID);
+        /// <summary>
         /// Get file from dbx
         /// </summary>
         /// <param name="sID">Song ID to get</param>
@@ -76,12 +83,13 @@ namespace Garmusic.Interfaces.Services
         /// <param name="sID">Song ID to check</param>
         /// <param name="plID">Playlist ID to check</param>
         /// <returns>Can user modify?</returns>
-        Task<bool> CanModify(int accountID, int sID, int plID);
+        Task<bool> CanModifyAsync(int accountID, int sID, int plID);
         /// <summary>
-        /// 
+        /// Is Song and Playlist linked with Account?
         /// </summary>
-        /// <param name="accountIDs">IDs of the users in storage system</param>
-        /// <returns></returns>
-        Task MigrateSongs(ICollection<string> accountIDs);
+        /// <param name="accountID">Account ID to check</param>
+        /// <param name="sID">Song ID to check</param>
+        /// <returns>Can user modify?</returns>
+        Task<bool> CanModifyAsync(int accountID, int sID);
     }
 }

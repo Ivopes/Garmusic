@@ -16,6 +16,19 @@ namespace Garmusic.Repositories
         {
             _dbContext = context;
         }
+
+        public async Task<bool> CanModifyAsync(int accountID, int pID)
+        {
+            var pl = await _dbContext.Playlists.FindAsync(pID);
+
+            if (pl is null)
+            {
+                return false;
+            }
+
+            return pl.AccountID == accountID;
+        }
+
         public async Task<IEnumerable<Playlist>> GetAllAsync(int accountId)
         {
             return await _dbContext.Playlists.Where(pl => pl.AccountID == accountId).Include(pl => pl.Songs).ToListAsync();
@@ -49,6 +62,21 @@ namespace Garmusic.Repositories
 
             await SaveAsync();
         }
+
+        public async Task RemoveAsync(int pID)
+        {
+            var entity = await _dbContext.Playlists.FindAsync(pID);
+
+            if (entity is null)
+            {
+                return;
+            }
+
+            _dbContext.Playlists.Remove(entity);
+
+            await SaveAsync();
+        }
+
         public async Task SaveAsync()
         {
             await _dbContext.SaveChangesAsync();

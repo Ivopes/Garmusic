@@ -39,5 +39,18 @@ namespace Garmusic.Interfaces.Repositories
         /// <param name="playlists">playlist to update</param>
         /// <returns></returns>
         Task UpdateSyncAsync(IEnumerable<Playlist> playlists);
+        /// <summary>
+        /// Is Playlist linked with Account?
+        /// </summary>
+        /// <param name="accountID">Account ID to check</param>
+        /// <param name="pID">Playlists ID to check</param>
+        /// <returns>Can user modify?</returns>
+        Task<bool> CanModifyAsync(int accountID, int pID);
+        /// <summary>
+        /// Deletes Playlist from storage
+        /// </summary>
+        /// <param name="pID">Playlists id</param>
+        /// <returns></returns>
+        Task RemoveAsync(int pID);
     }
 }
