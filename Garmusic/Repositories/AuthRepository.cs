@@ -42,7 +42,7 @@ namespace Garmusic.Repositories
 
             return json.JwtToken;
         }
-        public string GetDropboxSecretHashed()
+        public string GetDropboxKeys()
         {
             string s = _config.GetValue<string>("DropboxKey") + ":" +_config.GetValue<string>("DropboxSecret");
 
@@ -156,6 +156,22 @@ namespace Garmusic.Repositories
 
             await _dbContext.AccountStorages.AddAsync(entity);
 
+            await _dbContext.SaveChangesAsync();
+        }
+        public async Task SignOutDbx(int aID)
+        {
+            var accS = await _dbContext.AccountStorages.FindAsync(aID, (int)StorageType.Dropbox);
+
+            _dbContext.AccountStorages.Remove(accS);
+
+            var songs = _dbContext.Songs.Where(s => s.AccountID == aID && s.StorageID == (int)StorageType.Dropbox);
+
+            _dbContext.RemoveRange(songs);
+
+            await SaveAsync();
+        }
+        public async Task SaveAsync()
+        {
             await _dbContext.SaveChangesAsync();
         }
     }

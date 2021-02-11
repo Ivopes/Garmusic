@@ -12,6 +12,10 @@ using Garmusic.Services.Dependencies;
 using Garmusic.Interfaces.Services;
 using System.Threading.Tasks;
 using Garmusic.Models.Entities;
+using System.Net.Http;
+using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 
 namespace Garmusic.Controllers
 {
@@ -22,11 +26,13 @@ namespace Garmusic.Controllers
         private readonly MusicPlayerContext _dbContext;
         private readonly IAuthService _authService;
         private readonly IMigrationService _migService;
-        public AuthController(MusicPlayerContext dbContext, IAuthService authService, IMigrationService migrationService)
+        private readonly IConfiguration _config;
+        public AuthController(MusicPlayerContext dbContext, IAuthService authService, IMigrationService migrationService, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _authService = authService;
             _migService = migrationService;
+            _config = configuration;
         }
         [HttpPost("Login")]
         public async Task<ActionResult> LoginAsync([FromBody] Account account)
@@ -79,14 +85,50 @@ namespace Garmusic.Controllers
 
             return BadRequest(response);
         }
-        [HttpPost("registerDropbox")]
-        public async Task<ActionResult> RegisterDropboxAsync([FromBody] DropboxJson json)
+        [HttpGet("dbx/{dbxCode}")]
+        public async Task<ActionResult> RegisterDropboxAsync(string dbxCode)
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+
             if(accountId == -1)
             {
                 return BadRequest();
             }
+
+            using var client = new HttpClient();
+
+            string dbxKeys = _authService.GetDropboxKeys();
+
+            var dict = new Dictionary<string, string>();
+
+            dict.Add("grant_type", "authorization_code");
+            dict.Add("code", dbxCode);
+            dict.Add("redirect_uri", _config.GetValue<string>("DropboxRedirectURL"));
+
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", dbxKeys);
+
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://api.dropbox.com/1/oauth2/token") 
+            { 
+                Content = new FormUrlEncodedContent(dict) 
+            };
+
+            var response = await client.SendAsync(req);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            var resBody = await response.Content.ReadAsStringAsync();
+            
+            var db = JsonConvert.DeserializeObject<DbxOAuthResponse>(resBody);
+
+            var json = new DropboxJson()
+            {
+                Cursor = "",
+                DropboxID = db.Account_id,
+                JwtToken = db.Access_token
+            };
 
             await _authService.RegisterDropboxAsync(accountId, json);
 
@@ -94,18 +136,19 @@ namespace Garmusic.Controllers
 
             return Ok();
         }
-        [HttpGet("getDropboxJwt")]
-        public async Task<ActionResult<string>> GetDropboxJwtAsync()
+        [HttpDelete]
+        public async Task<ActionResult<string>> SignOutDbx()
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+
             if (accountId == -1)
             {
                 return BadRequest();
             }
 
-            string jwtToken = await _authService.GetDropboxJwtAsync(accountId);
-
-            return Ok(new { token = jwtToken });
+            await _authService.SignOutDbx(accountId);
+            
+            return Ok();
         }
         [HttpGet("dbxCodeHash")]
         public  ActionResult<string> GetDropboxCodeHashed()
@@ -116,7 +159,7 @@ namespace Garmusic.Controllers
                 return BadRequest();
             }
 
-            string code = _authService.GetDropboxSecretHashed();
+            string code = _authService.GetDropboxKeys();
 
             return Ok(code);
         }

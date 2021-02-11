@@ -44,6 +44,8 @@ namespace Garmusic.Interfaces.Repositories
         /// Get the hashed dropbox key and secret for dbxOAuth token url
         /// </summary>
         /// <returns>Key:secret in base64</returns>
-        string GetDropboxSecretHashed();
+        string GetDropboxKeys();
+        Task SignOutDbx(int aID);
+        Task SaveAsync();
     }
 }

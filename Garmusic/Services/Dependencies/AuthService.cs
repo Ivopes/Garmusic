@@ -23,9 +23,9 @@ namespace Garmusic.Services.Dependencies
             return await _authRepository.GetDropboxJwtAsync(accountId);
         }
 
-        public string GetDropboxSecretHashed()
+        public string GetDropboxKeys()
         {
-            return _authRepository.GetDropboxSecretHashed();
+            return _authRepository.GetDropboxKeys();
         }
 
         public async Task<string> LoginAsync(Account account)
@@ -46,6 +46,11 @@ namespace Garmusic.Services.Dependencies
         public async Task RegisterDropboxAsync(int accountId, DropboxJson json)
         {
             await _authRepository.RegisterDropboxAsync(accountId, json);
+        }
+
+        public async Task SignOutDbx(int aID)
+        {
+            await _authRepository.SignOutDbx(aID);
         }
     }
 }
