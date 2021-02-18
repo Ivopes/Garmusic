@@ -1,8 +1,10 @@
 ﻿using Dropbox.Api;
 using Dropbox.Api.Files;
 using Garmusic.Interfaces.Repositories;
+using Garmusic.Interfaces.Utilities;
 using Garmusic.Models;
 using Garmusic.Models.Entities;
+using Garmusic.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
@@ -16,51 +18,17 @@ namespace Garmusic.Repositories
     public class MigrationRepository : IMigrationRepository
     {
         private readonly MusicPlayerContext _dbContext;
+        private readonly IBackgroundTaskQueue _backgroundTaskQueue;
         private readonly StorageType storageType = StorageType.Dropbox;
-        public MigrationRepository(MusicPlayerContext dbContext)
+        public MigrationRepository(MusicPlayerContext dbContext, IBackgroundTaskQueue backgroundTaskQueue)
         {
             _dbContext = dbContext;
+            _backgroundTaskQueue = backgroundTaskQueue;
         }
         public async Task DropboxWebhookMigrationAsync(IEnumerable<string> storageAccountsIDs)
         {
             
-            //var accounts = await _dbContext.Accounts.Include(a => a.AccountStorages.Where(acs => acs.StorageID == (int)StorageType.Dropbox )).ToListAsync();
-            //var accounts = await _dbContext.Accounts.Include(a => a.AccountStorages).AsNoTracking().ToListAsync();
-
-            /*foreach (var acc in accounts)
-            {
-                acc.AccountStorages = acc.AccountStorages.Where(acs => acs.StorageID == (int)storageType).ToArray();
-                
-                if (acc.AccountStorages.Count != 1)
-                {
-                    continue;
-                }
-
-                DropboxJson json = JsonConvert.DeserializeObject<DropboxJson>(acc.AccountStorages[0].JsonData);
-
-                if (json == null)
-                {
-                    continue;
-                }
-
-                if (!storageAccountsIDs.Contains(json.DropboxID))
-                {
-                    continue;
-                }
-
-                using var dbx = new DropboxClient(json.JwtToken);
-
-                var files = await dbx.Files.ListFolderContinueAsync(json.Cursor);
-
-                json.Cursor = files.Cursor;
-
-                await UpdateJsonData(acc.AccountID, json);
-                await UpdateSongs(acc.AccountID, files.Entries);
-
-                await _dbContext.SaveChangesAsync();
-            }*/
             var accounts = await _dbContext.Accounts.Include(a => a.AccountStorages.Where(acs => acs.StorageID == (int)StorageType.Dropbox)).ToListAsync();
-            //var accounts = await _dbContext.Accounts.Include(a => a.AccountStorages).SkipWhile(a => a.AccountStoragesa.(acs => acs.StorageID == (int)StorageType.Dropbox)).ToListAsync();
 
             foreach (var acc in accounts)
             {
@@ -88,9 +56,12 @@ namespace Garmusic.Repositories
                 json.Cursor = files.Cursor;
 
                 await UpdateJsonData(acc.AccountID, json);
+
                 await UpdateSongs(acc.AccountID, files.Entries);
 
                 await _dbContext.SaveChangesAsync();
+
+                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsMetadata(acc.AccountID, files.Entries, dbx));
             }
         }
         public async Task DropboxMigrationAsync(int accountId)
@@ -115,6 +86,8 @@ namespace Garmusic.Repositories
             await UpdateSongs(accountId, files.Entries);
 
             await _dbContext.SaveChangesAsync();
+
+            _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsMetadata(accountId, files.Entries, dbx));
         }
         private async Task UpdateSongs(int accountId, IEnumerable<Metadata> files)
         {
@@ -161,6 +134,33 @@ namespace Garmusic.Repositories
             var entity = await _dbContext.AccountStorages.FindAsync(accountId, (int)storageType);
 
             entity.JsonData = JsonConvert.SerializeObject(json);
+        }
+        private async Task UpdateSongsMetadata(int accountId, IEnumerable<Metadata> files, DropboxClient dbx)
+        {
+            foreach (var song in files)
+            {
+                if (!song.Name.EndsWith(".mp3"))
+                {
+                    continue;
+                }
+                if (!song.IsDeleted)
+                {
+                    var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.FileName == song.Name && s.AccountID == accountId);
+                    
+                    if (entity is not null)
+                    {
+                        var file = await dbx.Files.DownloadAsync(((FileMetadata)song).Id);
+
+                        var stream = await file.GetContentAsStreamAsync();
+
+                        MetadataUtility.FillMetadata(entity, stream);
+
+                        entity.StorageSongID = ((FileMetadata)song).Id;
+                    }
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

@@ -92,9 +92,9 @@ namespace Garmusic.Repositories
 
             DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
 
-            using var dbx = new DropboxClient(dbxJson.JwtToken);
-
             var song = await _dbContext.Songs.FindAsync(sID);
+
+            using var dbx = new DropboxClient(dbxJson.JwtToken);
 
             var file = await dbx.Files.DownloadAsync(song.StorageSongID);
 

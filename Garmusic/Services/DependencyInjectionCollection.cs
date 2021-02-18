@@ -1,7 +1,9 @@
 ﻿using Garmusic.Interfaces.Repositories;
 using Garmusic.Interfaces.Services;
+using Garmusic.Interfaces.Utilities;
 using Garmusic.Repositories;
 using Garmusic.Services.Dependencies;
+using Garmusic.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -26,6 +28,9 @@ namespace Garmusic.Services
             services.AddTransient<IPlaylistRepository, PlaylistRepository>();
             services.AddTransient<IStorageService, StorageService>();
             services.AddTransient<IStorageRepository, StorageRepository>();
+
+            services.AddHostedService<BackgroundWorker>();
+            services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
             return services;
         }
