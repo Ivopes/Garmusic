@@ -57,7 +57,7 @@ namespace Garmusic.Repositories
 
                 await UpdateJsonData(acc.AccountID, json);
 
-                await UpdateSongs(acc.AccountID, files.Entries);
+                //await UpdateSongs(acc.AccountID, files.Entries);
 
                 await _dbContext.SaveChangesAsync();
 
@@ -83,7 +83,7 @@ namespace Garmusic.Repositories
 
             await UpdateJsonData(accountId, dbxJson);
 
-            await UpdateSongs(accountId, files.Entries);
+            //await UpdateSongs(accountId, files.Entries);
 
             await _dbContext.SaveChangesAsync();
 
@@ -143,23 +143,38 @@ namespace Garmusic.Repositories
                 {
                     continue;
                 }
-                if (!song.IsDeleted)
+                if (song.IsDeleted)
                 {
                     var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.FileName == song.Name && s.AccountID == accountId);
-                    
                     if (entity is not null)
                     {
-                        var file = await dbx.Files.DownloadAsync(((FileMetadata)song).Id);
-
-                        var stream = await file.GetContentAsStreamAsync();
-
-                        MetadataUtility.FillMetadata(entity, stream);
-
-                        entity.StorageSongID = ((FileMetadata)song).Id;
+                        _dbContext.Songs.Remove(entity);
                     }
                 }
-            }
+                else
+                {
+                    // Check if alreaedy exists
+                    var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.FileName == song.Name && s.AccountID == accountId);
 
+                    if (entity is null)
+                    {
+                        entity = new Song()
+                        {
+                            AccountID = accountId,
+                            FileName = song.Name,
+                            StorageID = (int)storageType,
+                            StorageSongID = ((FileMetadata)song).Id
+                        };
+                    }
+                    var file = await dbx.Files.DownloadAsync(entity.StorageSongID);
+
+                    var stream = await file.GetContentAsStreamAsync();
+
+                    MetadataUtility.FillMetadata(entity, stream);
+
+                    await _dbContext.Songs.AddAsync(entity);
+                }
+            }
             await _dbContext.SaveChangesAsync();
         }
     }
