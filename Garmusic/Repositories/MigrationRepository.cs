@@ -6,9 +6,11 @@ using Garmusic.Models;
 using Garmusic.Models.Entities;
 using Garmusic.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -20,14 +22,16 @@ namespace Garmusic.Repositories
         private readonly MusicPlayerContext _dbContext;
         private readonly IBackgroundTaskQueue _backgroundTaskQueue;
         private readonly StorageType storageType = StorageType.Dropbox;
-        public MigrationRepository(MusicPlayerContext dbContext, IBackgroundTaskQueue backgroundTaskQueue)
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        public MigrationRepository(MusicPlayerContext dbContext, IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory)
         {
             _dbContext = dbContext;
             _backgroundTaskQueue = backgroundTaskQueue;
+            _serviceScopeFactory = scopeFactory;
         }
         public async Task DropboxWebhookMigrationAsync(IEnumerable<string> storageAccountsIDs)
         {
-            
+
             var accounts = await _dbContext.Accounts.Include(a => a.AccountStorages.Where(acs => acs.StorageID == (int)StorageType.Dropbox)).ToListAsync();
 
             foreach (var acc in accounts)
@@ -61,7 +65,7 @@ namespace Garmusic.Repositories
 
                 await _dbContext.SaveChangesAsync();
 
-                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsMetadata(acc.AccountID, files.Entries, dbx));
+                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsMetadata(acc.AccountID, files.Entries, json.JwtToken));
             }
         }
         public async Task DropboxMigrationAsync(int accountId)
@@ -87,7 +91,7 @@ namespace Garmusic.Repositories
 
             await _dbContext.SaveChangesAsync();
 
-            _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsMetadata(accountId, files.Entries, dbx));
+            _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsMetadata(accountId, files.Entries, dbxJson.JwtToken));
         }
         private async Task UpdateSongs(int accountId, IEnumerable<Metadata> files)
         {
@@ -100,7 +104,7 @@ namespace Garmusic.Repositories
                 if (song.IsDeleted)
                 {
                     var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.FileName == song.Name && s.AccountID == accountId);
-                    if(entity != null)
+                    if (entity != null)
                     {
                         _dbContext.Songs.Remove(entity);
                     }
@@ -119,9 +123,9 @@ namespace Garmusic.Repositories
                             StorageID = (int)storageType,
                             StorageSongID = ((FileMetadata)song).Id
                         };
-                        
+
                         await _dbContext.Songs.AddAsync(entity);
-                    } 
+                    }
                     else
                     {
                         entity.StorageSongID = ((FileMetadata)song).Id;
@@ -135,8 +139,11 @@ namespace Garmusic.Repositories
 
             entity.JsonData = JsonConvert.SerializeObject(json);
         }
-        private async Task UpdateSongsMetadata(int accountId, IEnumerable<Metadata> files, DropboxClient dbx)
+        private async Task UpdateSongsMetadata(int accountId, IEnumerable<Metadata> files, string jwtToken)
         {
+            using var dbx = new DropboxClient(jwtToken);
+            using var scope = _serviceScopeFactory.CreateScope();
+            var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
             foreach (var song in files)
             {
                 if (!song.Name.EndsWith(".mp3"))
@@ -169,8 +176,9 @@ namespace Garmusic.Repositories
                     var file = await dbx.Files.DownloadAsync(entity.StorageSongID);
 
                     var stream = await file.GetContentAsStreamAsync();
-
-                    MetadataUtility.FillMetadata(entity, stream);
+                    var mStream = new MemoryStream();
+                    await stream.CopyToAsync(mStream);
+                    MetadataUtility.FillMetadata(entity, mStream);
 
                     await _dbContext.Songs.AddAsync(entity);
                 }
