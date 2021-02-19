@@ -174,5 +174,35 @@ namespace Garmusic.Repositories
         {
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task RegisterGoogleDriveAsync(int accountID, string token)
+        {
+            AccountStorage entity = new AccountStorage()
+            {
+                AccountID = accountID,
+                StorageID = (int)StorageType.GoogleDrive
+            };
+
+            string entityJson = JsonConvert.SerializeObject(token);
+
+            entity.JsonData = entityJson;
+
+            await _dbContext.AccountStorages.AddAsync(entity);
+
+            await SaveAsync();
+        }
+
+        public async Task SignOutGoogleDrive(int accountID)
+        {
+            var accS = await _dbContext.AccountStorages.FindAsync(accountID, (int)StorageType.GoogleDrive);
+
+            _dbContext.AccountStorages.Remove(accS);
+
+            var songs = _dbContext.Songs.Where(s => s.AccountID == accountID && s.StorageID == (int)StorageType.GoogleDrive);
+
+            _dbContext.RemoveRange(songs);
+
+            await SaveAsync();
+        }
     }
 }

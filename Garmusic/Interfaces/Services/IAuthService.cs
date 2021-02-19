@@ -35,6 +35,13 @@ namespace Garmusic.Interfaces.Services
         /// <returns></returns>
         Task RegisterDropboxAsync(int accountID, DropboxJson json);
         /// <summary>
+        /// Add AccountStorage entity to storage
+        /// </summary>
+        /// <param name="accountID">Account ID to add</param>
+        /// <param name="token">JWT token</param>
+        /// <returns></returns>
+        Task RegisterGoogleDriveAsync(int accountID, string token);
+        /// <summary>
         /// Get JWT token by Account ID from storage
         /// </summary>
         /// <param name="accountID">Account ID from which take token</param>
@@ -46,5 +53,6 @@ namespace Garmusic.Interfaces.Services
         /// <returns>Key:secret in base64</returns>
         string GetDropboxKeys();
         Task SignOutDbx(int aID);
+        Task SignOutGoogleDrive(int accountId);
     }
 }

@@ -16,6 +16,13 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
 
 namespace Garmusic.Controllers
 {
@@ -23,13 +30,11 @@ namespace Garmusic.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly MusicPlayerContext _dbContext;
         private readonly IAuthService _authService;
         private readonly IMigrationService _migService;
         private readonly IConfiguration _config;
-        public AuthController(MusicPlayerContext dbContext, IAuthService authService, IMigrationService migrationService, IConfiguration configuration)
+        public AuthController(IAuthService authService, IMigrationService migrationService, IConfiguration configuration)
         {
-            _dbContext = dbContext;
             _authService = authService;
             _migService = migrationService;
             _config = configuration;
@@ -136,7 +141,7 @@ namespace Garmusic.Controllers
 
             return Ok();
         }
-        [HttpDelete]
+        [HttpDelete("dbx")]
         public async Task<ActionResult<string>> SignOutDbx()
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
@@ -148,6 +153,44 @@ namespace Garmusic.Controllers
 
             await _authService.SignOutDbx(accountId);
             
+            return Ok();
+        }
+        [HttpDelete("gd")]
+        public async Task<ActionResult<string>> SignOutGoogleDrive()
+        {
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            await _authService.SignOutGoogleDrive(accountId);
+
+            return Ok();
+        }
+        [HttpGet("gd")]
+        public async Task<ActionResult> SignInGoogleDrive()
+        {
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            string[] Scopes = { DriveService.Scope.DriveReadonly };
+
+            using var stream = new FileStream("client_secret.json", FileMode.Open, FileAccess.Read);
+
+            UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                GoogleClientSecrets.Load(stream).Secrets, 
+                Scopes, 
+                accountId.ToString(), 
+                CancellationToken.None);
+
+            await _authService.RegisterGoogleDriveAsync(accountId, await credential.GetAccessTokenForRequestAsync());
+
             return Ok();
         }
     }

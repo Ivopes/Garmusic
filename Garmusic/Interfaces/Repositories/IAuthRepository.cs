@@ -35,6 +35,15 @@ namespace Garmusic.Interfaces.Repositories
         /// <returns></returns>
         Task RegisterDropboxAsync(int accountID, DropboxJson json);
         /// <summary>
+        /// Add AccountStorage entity to storage
+        /// </summary>
+        /// <param name="accountID">Account ID to add</param>
+        /// <param name="token">JWT token to add</param>
+        /// <returns></returns>
+        Task RegisterGoogleDriveAsync(int accountID, string token);
+        Task SignOutGoogleDrive(int accountId);
+
+        /// <summary>
         /// Get JWT token by Account ID from storage
         /// </summary>
         /// <param name="accountID">Account ID from which take token</param>
