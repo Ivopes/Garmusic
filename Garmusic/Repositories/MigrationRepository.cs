@@ -111,7 +111,7 @@ namespace Garmusic.Repositories
                 return;
             }
 
-            string[] Scopes = { DriveService.Scope.DriveReadonly };
+            string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
 
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
@@ -195,7 +195,7 @@ namespace Garmusic.Repositories
             var gdDataStore = scope.ServiceProvider.GetRequiredService<IDataStore>();
 
             var dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
-            string[] Scopes = { DriveService.Scope.DriveReadonly };
+            string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
 
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 

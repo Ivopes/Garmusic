@@ -5,6 +5,10 @@ using Garmusic.Models;
 using Garmusic.Models.Entities;
 using Garmusic.Models.EntitiesWatch;
 using Garmusic.Utilities;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -12,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Garmusic.Repositories
@@ -19,9 +24,12 @@ namespace Garmusic.Repositories
     public class SongRepository : ISongRepository
     {
         private readonly MusicPlayerContext _dbContext;
-        public SongRepository(MusicPlayerContext context)
+        private readonly IDataStore _GDdataStore;
+
+        public SongRepository(MusicPlayerContext context, IDataStore gDdataStore)
         {
             _dbContext = context;
+            _GDdataStore = gDdataStore;
         }
 
         public async Task AddSongToPlaylistAsync(int sID, int plID)
@@ -34,27 +42,57 @@ namespace Garmusic.Repositories
             await SaveAsync();
         }
 
-        public async Task DeleteFromDbxAsync(int sID, int accountID)
+        public async Task DeleteAsync(int sID, int accountID)
         {
 
-            var accountStorage = _dbContext.AccountStorages.Find(accountID, (int)StorageType.Dropbox);
-
-            DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
-
-            using var dbx = new DropboxClient(dbxJson.JwtToken);
-
             var entity = await _dbContext.Songs.FindAsync(sID);
-            
+
             _dbContext.Songs.Remove(entity);
 
-            await dbx.Files.DeleteV2Async(entity.StorageSongID);
-            
-            var files = await dbx.Files.ListFolderAsync("");
+            switch (entity.StorageID)
+            {
+                case (int)StorageType.Dropbox:
+                {
+                    var accountStorage = _dbContext.AccountStorages.Find(accountID, entity.StorageID);
 
-            dbxJson.Cursor = files.Cursor;
+                    DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
 
-            accountStorage.JsonData = JsonConvert.SerializeObject(dbxJson);
+                    using var dbx = new DropboxClient(dbxJson.JwtToken);
 
+                    await dbx.Files.DeleteV2Async(entity.StorageSongID);
+
+                    var files = await dbx.Files.ListFolderAsync("");
+
+                    dbxJson.Cursor = files.Cursor;
+
+                    accountStorage.JsonData = JsonConvert.SerializeObject(dbxJson);
+
+                    break;
+                }
+                case (int)StorageType.GoogleDrive:
+                {
+                    string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
+
+                    using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
+
+                    UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                        GoogleClientSecrets.Load(stream).Secrets,
+                        Scopes,
+                        accountID.ToString(),
+                        CancellationToken.None,
+                        _GDdataStore);
+
+                    using var gdService = new DriveService(new BaseClientService.Initializer()
+                    {
+                        HttpClientInitializer = credential,
+                        ApplicationName = "Garmusic",
+                    });
+
+                    await gdService.Files.Delete(entity.StorageSongID).ExecuteAsync();
+
+                    break;
+                }
+            }
             await SaveAsync();
         }
 
@@ -124,28 +162,77 @@ namespace Garmusic.Repositories
         {
             await _dbContext.Songs.AddAsync(song);
         }
-        public async Task<Song> PostToDbxAsync(IFormFile file, int accountId)
+        public async Task<Song> PostAsync(IFormFile file, int accountID, int storageID)
         {
-            var accountStorage = _dbContext.AccountStorages.Find(accountId, (int)StorageType.Dropbox );
-            
-            DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
-
-            using var dbx = new DropboxClient(dbxJson.JwtToken);
-
-            var uploaded = await dbx.Files.UploadAsync(
-                                                    "/" + file.FileName,
-                                                    WriteMode.Add.Instance,
-                                                    strictConflict: true,
-                                                    body: file.OpenReadStream());
-            Song song = new Song()
+            Song song = null;
+            switch (storageID)
             {
-                AccountID = accountId,
-                FileName = file.FileName,
-                StorageSongID = uploaded.Id,
-                StorageID = (int)StorageType.Dropbox,
-                Playlists = new List<Playlist>()
-            };
+                case (int)StorageType.Dropbox:
+                    {
+                        var accountStorage = _dbContext.AccountStorages.Find(accountID, (int)StorageType.Dropbox);
 
+                        DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
+
+                        using var dbx = new DropboxClient(dbxJson.JwtToken);
+
+                        var uploaded = await dbx.Files.UploadAsync(
+                                                                "/" + file.FileName,
+                                                                WriteMode.Add.Instance,
+                                                                strictConflict: true,
+                                                                body: file.OpenReadStream());
+                        song = new Song()
+                        {
+                            AccountID = accountID,
+                            FileName = file.FileName,
+                            StorageSongID = uploaded.Id,
+                            StorageID = storageID,
+                            Playlists = new List<Playlist>()
+                        };
+
+                        break;
+                    }
+                case (int)StorageType.GoogleDrive:
+                    {
+                        string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
+
+                        using var s = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
+
+                        UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                            GoogleClientSecrets.Load(s).Secrets,
+                            Scopes,
+                            accountID.ToString(),
+                            CancellationToken.None,
+                            _GDdataStore);
+
+                        using var gdService = new DriveService(new BaseClientService.Initializer()
+                        {
+                            HttpClientInitializer = credential,
+                            ApplicationName = "Garmusic",
+                        });
+
+                        var ids = gdService.Files.GenerateIds();
+
+                        ids.Count = 1;
+                        
+                        Google.Apis.Drive.v3.Data.File f = new Google.Apis.Drive.v3.Data.File();
+
+                        f.Id = (await ids.ExecuteAsync()).Ids[0];
+                        f.Name = file.FileName;
+
+                        await gdService.Files.Create(f, file.OpenReadStream(), "audio/mpeg").UploadAsync();
+
+                        song = new Song()
+                        {
+                            AccountID = accountID,
+                            FileName = file.FileName,
+                            StorageSongID = f.Id,
+                            StorageID = storageID,
+                            Playlists = new List<Playlist>()
+                        };
+
+                        break;
+                    }
+            }
             using Stream stream = file.OpenReadStream();
 
             MetadataUtility.FillMetadata(song, stream);
@@ -170,7 +257,7 @@ namespace Garmusic.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteRangeFromDbxAsync(List<int> sIDs, int accountID)
+        public async Task DeleteRangeAsync(List<int> sIDs, int accountID)
         {
             var accountStorage = _dbContext.AccountStorages.Find(accountID, (int)StorageType.Dropbox);
 
@@ -178,19 +265,43 @@ namespace Garmusic.Repositories
 
             using var dbx = new DropboxClient(dbxJson.JwtToken);
 
+            string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
+
+            using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
+
+            UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                                GoogleClientSecrets.Load(stream).Secrets,
+                                Scopes,
+                                accountID.ToString(),
+                                CancellationToken.None,
+                                _GDdataStore);
+
+            using var gdService = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "Garmusic",
+            });
+
             foreach (var sID in sIDs)
             {
                 var entity = await _dbContext.Songs.FindAsync(sID);
-
                 _dbContext.Songs.Remove(entity);
-                
-                await dbx.Files.DeleteV2Async(entity.StorageSongID);
+                switch (entity.StorageID)
+                {
+                    case (int)StorageType.Dropbox:
+                        {
+                            await dbx.Files.DeleteV2Async(entity.StorageSongID);
+                            break;
+                        }
+                    case (int)StorageType.GoogleDrive:
+                        {
+                            await gdService.Files.Delete(entity.StorageSongID).ExecuteAsync();
+                            break;
+                        }
+                }
             }
-
             var files = await dbx.Files.ListFolderAsync("");
-
             dbxJson.Cursor = files.Cursor;
-
             accountStorage.JsonData = JsonConvert.SerializeObject(dbxJson);
 
             await SaveAsync();

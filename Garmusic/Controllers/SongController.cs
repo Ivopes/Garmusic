@@ -61,7 +61,7 @@ namespace Garmusic.Controllers
             return Ok(result);
         }
         [HttpPost]
-        public async Task<ActionResult<Song>> PostAsync([FromForm] IFormFile file)
+        public async Task<ActionResult<Song>> PostAsync([FromForm] IFormFile file, [FromForm] int storageID)
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
@@ -74,7 +74,7 @@ namespace Garmusic.Controllers
 
             try
             {
-                song = await _songService.PostToDbxAsync(file, accountId);
+                song = await _songService.PostAsync(file, accountId, storageID);
             }
             catch(Exception ex)
             {
@@ -98,7 +98,7 @@ namespace Garmusic.Controllers
                 return Unauthorized();
             }
 
-            await _songService.DeleteFromDbxAsync(sID, accountId);
+            await _songService.DeleteAsync(sID, accountId);
 
             return Ok();
         }
@@ -120,7 +120,7 @@ namespace Garmusic.Controllers
                 }
             }
 
-            await _songService.DeleteRangeFromDbxAsync(sIDs, accountId);
+            await _songService.DeleteRangeAsync(sIDs, accountId);
 
             return Ok();
         }

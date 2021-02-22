@@ -33,8 +33,9 @@ namespace Garmusic.Interfaces.Repositories
         /// </summary>
         /// <param name="file">File to upload</param>
         /// <param name="accountID">Accound ID to which upload the file</param>
+        /// <param name="storageID">Storage ID to which upload the file</param>
         /// <returns>Song which was uploaded</returns>
-        Task<Song> PostToDbxAsync(IFormFile file, int accountID);
+        Task<Song> PostAsync(IFormFile file, int accountID, int storageID);
         /// <summary>
         /// Post Song to database
         /// </summary>
@@ -61,14 +62,14 @@ namespace Garmusic.Interfaces.Repositories
         /// <param name="sID">Song ID to delete</param>
         /// <param name="accountID">Account ID to which is Song linked</param>
         /// <returns></returns>
-        Task DeleteFromDbxAsync(int sID, int accountID);
+        Task DeleteAsync(int sID, int accountID);
         /// <summary>
         /// Deletes files from dbx
         /// </summary>
         /// <param name="sIDs">Songs IDs to delete</param>
         /// <param name="accountID">Account ID to which is Song linked</param>
         /// <returns></returns>
-        Task DeleteRangeFromDbxAsync(List<int> sIDs, int accountID);
+        Task DeleteRangeAsync(List<int> sIDs, int accountID);
         /// <summary>
         /// Get file from dbx
         /// </summary>

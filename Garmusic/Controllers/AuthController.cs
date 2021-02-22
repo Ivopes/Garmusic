@@ -181,7 +181,7 @@ namespace Garmusic.Controllers
                 return BadRequest();
             }
 
-            string[] Scopes = { DriveService.Scope.DriveReadonly };
+            string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
 
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 

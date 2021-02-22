@@ -25,9 +25,9 @@ namespace Garmusic.Services.Dependencies
         {
             return await _songRepo.GetByIdAsync(id);
         }
-        public async Task<Song> PostToDbxAsync(IFormFile file, int accountId)
+        public async Task<Song> PostAsync(IFormFile file, int accountID, int storageID)
         {
-            return await _songRepo.PostToDbxAsync(file, accountId);
+            return await _songRepo.PostAsync(file, accountID, storageID);
         }
         public async Task PostAsync(Song song)
         {
@@ -44,9 +44,9 @@ namespace Garmusic.Services.Dependencies
             await _songRepo.RemovePlaylistAsync(sID, plID);
         }
 
-        public async Task DeleteFromDbxAsync(int sID, int accountID)
+        public async Task DeleteAsync(int sID, int accountID)
         {
-            await _songRepo.DeleteFromDbxAsync(sID, accountID);
+            await _songRepo.DeleteAsync(sID, accountID);
         }
 
         public async Task<byte[]> GetDbxFileByIdAsync(int sID, int accountID)
@@ -63,9 +63,9 @@ namespace Garmusic.Services.Dependencies
             return await _songRepo.CanModifyAsync(accountID, sID, plID);
         }
 
-        public async Task DeleteRangeFromDbxAsync(List<int> sIDs, int accountID)
+        public async Task DeleteRangeAsync(List<int> sIDs, int accountID)
         {
-            await _songRepo.DeleteRangeFromDbxAsync(sIDs, accountID);
+            await _songRepo.DeleteRangeAsync(sIDs, accountID);
         }
 
         public async Task<bool> CanModifyAsync(int accountID, int sID)
