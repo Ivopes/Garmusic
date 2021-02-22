@@ -33,11 +33,13 @@ namespace Garmusic.Controllers
         private readonly IAuthService _authService;
         private readonly IMigrationService _migService;
         private readonly IConfiguration _config;
-        public AuthController(IAuthService authService, IMigrationService migrationService, IConfiguration configuration)
+        private readonly IDataStore _dataStore;
+        public AuthController(IAuthService authService, IMigrationService migrationService, IConfiguration configuration, IDataStore dataStore)
         {
             _authService = authService;
             _migService = migrationService;
             _config = configuration;
+            _dataStore = dataStore;
         }
         [HttpPost("Login")]
         public async Task<ActionResult> LoginAsync([FromBody] Account account)
@@ -181,15 +183,28 @@ namespace Garmusic.Controllers
 
             string[] Scopes = { DriveService.Scope.DriveReadonly };
 
-            using var stream = new FileStream("client_secret.json", FileMode.Open, FileAccess.Read);
+            using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 GoogleClientSecrets.Load(stream).Secrets, 
                 Scopes, 
                 accountId.ToString(), 
-                CancellationToken.None);
+                CancellationToken.None,
+                _dataStore);
 
-            await _authService.RegisterGoogleDriveAsync(accountId, await credential.GetAccessTokenForRequestAsync());
+            //UserCredential c = new UserCredential();
+
+            /*var service = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "Garmusic",
+            });*/
+
+            //var files = await service.Files.List().ExecuteAsync();
+
+            //await _authService.RegisterGoogleDriveAsync(accountId, await credential.GetAccessTokenForRequestAsync());
+
+            await _migService.GoogleDriveMigrationAsync(accountId);
 
             return Ok();
         }

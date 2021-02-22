@@ -24,5 +24,10 @@ namespace Garmusic.Services.Dependencies
         {
             await _migRepo.DropboxMigrationAsync(accountId);
         }
+
+        public async Task GoogleDriveMigrationAsync(int accountId)
+        {
+            await _migRepo.GoogleDriveMigrationAsync(accountId);
+        }
     }
 }

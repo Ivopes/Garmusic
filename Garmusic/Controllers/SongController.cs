@@ -53,7 +53,8 @@ namespace Garmusic.Controllers
                     Name = song.Name,
                     Author = song.Author,
                     LengthSec = song.LengthSec,
-                    Playlists = song.Playlists
+                    Playlists = song.Playlists,
+                    StorageID = song.StorageID
                 });
             }
 

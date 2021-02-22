@@ -4,6 +4,7 @@ using Garmusic.Interfaces.Utilities;
 using Garmusic.Repositories;
 using Garmusic.Services.Dependencies;
 using Garmusic.Utilities;
+using Google.Apis.Util.Store;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace Garmusic.Services
             services.AddTransient<IPlaylistRepository, PlaylistRepository>();
             services.AddTransient<IStorageService, StorageService>();
             services.AddTransient<IStorageRepository, StorageRepository>();
+            services.AddTransient<IDataStore, GoogleDriveDataStore>();
 
             services.AddHostedService<BackgroundWorker>();
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();

@@ -12,6 +12,7 @@ namespace Garmusic.Models.EntitiesWeb
         public string Name { get; set; }
         public string Author { get; set; }
         public int LengthSec { get; set; }
+        public int StorageID { get; set; }
         public ICollection<Playlist> Playlists { get; set; }
     }
 }
