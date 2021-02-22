@@ -192,18 +192,6 @@ namespace Garmusic.Controllers
                 CancellationToken.None,
                 _dataStore);
 
-            //UserCredential c = new UserCredential();
-
-            /*var service = new DriveService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "Garmusic",
-            });*/
-
-            //var files = await service.Files.List().ExecuteAsync();
-
-            //await _authService.RegisterGoogleDriveAsync(accountId, await credential.GetAccessTokenForRequestAsync());
-
             await _migService.GoogleDriveMigrationAsync(accountId);
 
             return Ok();

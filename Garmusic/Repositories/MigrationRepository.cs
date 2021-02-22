@@ -191,9 +191,10 @@ namespace Garmusic.Repositories
         private async Task UpdateSongsGD(int accountId, IList<Google.Apis.Drive.v3.Data.File> files)
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var _GDdataStore = scope.ServiceProvider.GetRequiredService<IDataStore>();
-            var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
 
+            var gdDataStore = scope.ServiceProvider.GetRequiredService<IDataStore>();
+
+            var dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
             string[] Scopes = { DriveService.Scope.DriveReadonly };
 
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
@@ -203,15 +204,13 @@ namespace Garmusic.Repositories
                 Scopes,
                 accountId.ToString(),
                 CancellationToken.None,
-                _GDdataStore);
+                gdDataStore);
 
             using var gdService = new DriveService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = "Garmusic",
             });
-
-            //using var gdService = await GetGDService(accountId);
 
             foreach (var song in files)
             {
@@ -221,7 +220,10 @@ namespace Garmusic.Repositories
                 }
                 
                 // Check if alreaedy exists
-                var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.FileName == song.Name && s.AccountID == accountId && s.StorageID == (int)StorageType.GoogleDrive);
+                var entity = await dbContext.Songs.SingleOrDefaultAsync(s => 
+                s.FileName == song.Name && 
+                s.AccountID == accountId && 
+                s.StorageID == (int)StorageType.GoogleDrive);
 
                 if (entity is null)
                 {
@@ -239,31 +241,9 @@ namespace Garmusic.Repositories
               
                 MetadataUtility.FillMetadata(entity, mStream);
 
-                await _dbContext.Songs.AddAsync(entity);
+                await dbContext.Songs.AddAsync(entity);
             }
-            await _dbContext.SaveChangesAsync();
-        }
-        private async Task<DriveService> GetGDService(int accountID) 
-        {
-            //using var scope = _serviceScopeFactory.CreateScope();
-            //var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
-
-            string[] Scopes = { DriveService.Scope.DriveReadonly };
-
-            using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
-
-            UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                GoogleClientSecrets.Load(stream).Secrets,
-                Scopes,
-                accountID.ToString(),
-                CancellationToken.None,
-                _GDdataStore);
-
-            return new DriveService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "Garmusic",
-            });
+            await dbContext.SaveChangesAsync();
         }
     }
 }
