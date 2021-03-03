@@ -40,7 +40,6 @@
   <ItemGroup>
     <Folder Include="ClientApp\.git\objects\info\" />
     <Folder Include="ClientApp\.git\refs\tags\" />
-    <Folder Include="credentials.json\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
