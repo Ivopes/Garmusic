@@ -23,6 +23,7 @@ using Google.Apis.Util.Store;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Garmusic.Controllers
 {
@@ -93,6 +94,7 @@ namespace Garmusic.Controllers
             return BadRequest(response);
         }
         [HttpGet("dbx/{dbxCode}")]
+        [Authorize]
         public async Task<ActionResult> RegisterDropboxAsync(string dbxCode)
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
@@ -144,6 +146,7 @@ namespace Garmusic.Controllers
             return Ok();
         }
         [HttpDelete("dbx")]
+        [Authorize]
         public async Task<ActionResult<string>> SignOutDbx()
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
@@ -158,6 +161,7 @@ namespace Garmusic.Controllers
             return Ok();
         }
         [HttpDelete("gd")]
+        [Authorize]
         public async Task<ActionResult<string>> SignOutGoogleDrive()
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
@@ -172,6 +176,7 @@ namespace Garmusic.Controllers
             return Ok();
         }
         [HttpGet("gd")]
+        [Authorize]
         public async Task<ActionResult> SignInGoogleDrive()
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);

@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Text;
 using Garmusic.Utilities;
+using Microsoft.AspNetCore.Authorization;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -17,6 +18,7 @@ namespace Garmusic.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PlaylistController : ControllerBase
     {
         private readonly IPlaylistService _playlistService;

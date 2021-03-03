@@ -11,12 +11,13 @@ using Garmusic.Utilities;
 using ATL;
 using System.IO;
 using Garmusic.Models.EntitiesWeb;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Garmusic.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class SongController : ControllerBase
     {       
 

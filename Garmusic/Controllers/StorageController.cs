@@ -1,6 +1,7 @@
 ﻿using Garmusic.Interfaces.Services;
 using Garmusic.Models.Entities;
 using Garmusic.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -13,6 +14,7 @@ namespace Garmusic.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class StorageController : ControllerBase
     {
         private readonly IStorageService _storageService;

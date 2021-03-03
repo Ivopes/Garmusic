@@ -1,6 +1,7 @@
 ﻿using Garmusic.Interfaces.Services;
 using Garmusic.Models;
 using Garmusic.Models.EntitiesWatch;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
@@ -15,6 +16,7 @@ namespace Garmusic.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class WatchController : ControllerBase
     {
         private readonly ISongService _songService;

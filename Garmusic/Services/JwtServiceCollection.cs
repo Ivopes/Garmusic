@@ -13,19 +13,18 @@ namespace Garmusic.Services
             services.AddAuthentication(opt => {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-                           .AddJwtBearer(options =>
-                           {
-                               options.TokenValidationParameters = new TokenValidationParameters
-                               {
-                                   ValidateIssuer = true,
-                                   ValidateLifetime = true,
-                                   ValidateIssuerSigningKey = true,
-                                   ValidIssuer = config.GetValue<string>("ServerAdress"),
-                                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.GetValue<string>("JwtSecretKey")))
-                               };
-                           }
-                        );
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidateAudience = false,
+                    ValidIssuer = config.GetValue<string>("ServerAdress"),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.GetValue<string>("JwtSecretKey")))
+                };
+            });
 
             return services;
         }
