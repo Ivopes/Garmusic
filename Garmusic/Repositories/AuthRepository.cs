@@ -30,14 +30,14 @@ namespace Garmusic.Repositories
             var entity = await _dbContext.AccountStorages.FindAsync(accountId, (int)StorageType.Dropbox);
             if (entity is null)
             {
-                return "";
+                return string.Empty;
             }
 
             DropboxJson json = JsonConvert.DeserializeObject<DropboxJson>(entity.JsonData);
 
             if (string.IsNullOrEmpty(json.JwtToken))
             {
-                return "";
+                return string.Empty;
             }
 
             return json.JwtToken;
@@ -52,7 +52,7 @@ namespace Garmusic.Repositories
         }
         public async Task<string> LoginAsync(Account account)
         {
-            string token = "";
+            string token = string.Empty;
 
             Account entity = await _dbContext.Accounts.SingleOrDefaultAsync(acc => acc.Username == account.Username);
 
@@ -82,7 +82,7 @@ namespace Garmusic.Repositories
         }
         public async Task<string> LoginWatchAsync(Account account)
         {
-            string token = "";
+            string token = string.Empty;
 
             Account entity = await _dbContext.Accounts.SingleOrDefaultAsync(acc => acc.Username == account.Username);
 
@@ -112,7 +112,7 @@ namespace Garmusic.Repositories
         }
         public async Task<string> RegisterAsync(Account account)
         {
-            string response = "";
+            string response = string.Empty;
 
             if (await _dbContext.Accounts.AnyAsync(a => a.Email == account.Email))
             {

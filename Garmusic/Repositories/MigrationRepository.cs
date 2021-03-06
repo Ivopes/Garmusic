@@ -90,7 +90,7 @@ namespace Garmusic.Repositories
 
             using var dbx = new DropboxClient(dbxJson.JwtToken);
 
-            var files = await dbx.Files.ListFolderAsync("");
+            var files = await dbx.Files.ListFolderAsync(string.Empty);
 
             dbxJson.Cursor = files.Cursor;
 

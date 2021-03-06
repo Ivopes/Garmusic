@@ -61,7 +61,7 @@ namespace Garmusic.Repositories
 
                     await dbx.Files.DeleteV2Async(entity.StorageSongID);
 
-                    var files = await dbx.Files.ListFolderAsync("");
+                    var files = await dbx.Files.ListFolderAsync(string.Empty);
 
                     dbxJson.Cursor = files.Cursor;
 
@@ -300,7 +300,7 @@ namespace Garmusic.Repositories
                         }
                 }
             }
-            var files = await dbx.Files.ListFolderAsync("");
+            var files = await dbx.Files.ListFolderAsync(string.Empty);
             dbxJson.Cursor = files.Cursor;
             accountStorage.JsonData = JsonConvert.SerializeObject(dbxJson);
 

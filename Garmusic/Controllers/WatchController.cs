@@ -1,6 +1,7 @@
 ﻿using Garmusic.Interfaces.Services;
 using Garmusic.Models;
 using Garmusic.Models.EntitiesWatch;
+using Garmusic.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -29,13 +30,13 @@ namespace Garmusic.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            /*int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
              if (accountId == -1)
              {
                  return BadRequest();
-             }*/
-            int accountId = 1;
+             }
+            //int accountId = 1;
 
             var songs = await _songService.GetAllWatchAsync(accountId);
             var playlists = await _playlistService.GetAllWatchAsync(accountId);
@@ -52,13 +53,13 @@ namespace Garmusic.Controllers
         [HttpPut]
         public async Task<ActionResult> Put()
         {
-            /*int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
             if (accountId == -1)
             {
                 return BadRequest();
-            }*/
-            int accountId = 1;
+            }
+            //int accountId = 1;
 
             // Method cant handle parameter
             // This is a replacement

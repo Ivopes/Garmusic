@@ -48,7 +48,7 @@ namespace Garmusic.Controllers
 
             using var sha = new HMACSHA256(Encoding.UTF8.GetBytes(_config.GetValue<string>("DropboxSecret")));
 
-            var hashedBody = BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(body))).Replace("-", "").ToLower();
+            var hashedBody = BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(body))).Replace("-", string.Empty).ToLower();
 
             string signature = signatureHeader.FirstOrDefault();
 

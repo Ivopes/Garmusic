@@ -52,7 +52,7 @@ namespace Garmusic.Controllers
 
             string jwtToken = await _authService.LoginAsync(account);
 
-            if (jwtToken == "")
+            if (jwtToken == string.Empty)
             {
                 return Unauthorized();
             }
@@ -69,7 +69,7 @@ namespace Garmusic.Controllers
 
             string jwtToken = await _authService.LoginAsync(account);
 
-            if (jwtToken == "")
+            if (jwtToken == string.Empty)
             {
                 return Unauthorized();
             }
@@ -86,7 +86,7 @@ namespace Garmusic.Controllers
 
             string response = await _authService.RegisterAsync(account);
 
-            if (response == "")
+            if (response == string.Empty)
             {
                 return Ok();
             }
@@ -134,7 +134,7 @@ namespace Garmusic.Controllers
 
             var json = new DropboxJson()
             {
-                Cursor = "",
+                Cursor = string.Empty,
                 DropboxID = db.Account_id,
                 JwtToken = db.Access_token
             };

@@ -21,7 +21,7 @@ namespace Garmusic.Utilities
 
             Track track = new Track(stream, ".mp3");
 
-            song.Name = track.Title != "" ? track.Title : song.FileName[..song.FileName.LastIndexOf('.')];
+            song.Name = track.Title != string.Empty ? track.Title : song.FileName[..song.FileName.LastIndexOf('.')];
             song.LengthSec = track.Duration;
             song.Author = track.Artist;
         }
