@@ -11,8 +11,10 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -30,13 +32,15 @@ namespace Garmusic.Repositories
         private readonly IBackgroundTaskQueue _backgroundTaskQueue;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IDataStore _GDdataStore;
+        private readonly IWebHostEnvironment _env;
 
-        public MigrationRepository(MusicPlayerContext dbContext, IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IDataStore gDdataStore)
+        public MigrationRepository(MusicPlayerContext dbContext, IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IDataStore gDdataStore, IWebHostEnvironment env)
         {
             _dbContext = dbContext;
             _backgroundTaskQueue = backgroundTaskQueue;
             _serviceScopeFactory = scopeFactory;
             _GDdataStore = gDdataStore;
+            _env = env;
         }
         public async Task DropboxWebhookMigrationAsync(IEnumerable<string> storageAccountsIDs)
         {
@@ -74,7 +78,14 @@ namespace Garmusic.Repositories
 
                 await _dbContext.SaveChangesAsync();
 
-                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(acc.AccountID, files.Entries, json.JwtToken));
+                if (_env.IsDevelopment())
+                {
+                    _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(acc.AccountID, files.Entries, json.JwtToken));
+                }
+                else
+                {
+                    await UpdateSongsDBX(acc.AccountID, files.Entries, json.JwtToken);
+                }
             }
         }
         public async Task DropboxMigrationAsync(int accountId)
@@ -100,7 +111,14 @@ namespace Garmusic.Repositories
 
             await _dbContext.SaveChangesAsync();
 
-            _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(accountId, files.Entries, dbxJson.JwtToken));
+            if (_env.IsDevelopment())
+            {
+                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(accountId, files.Entries, dbxJson.JwtToken));
+            }
+            else
+            {
+                await UpdateSongsDBX(accountId, files.Entries, dbxJson.JwtToken);
+            }
         }
         public async Task GoogleDriveMigrationAsync(int accountId)
         {
@@ -134,7 +152,14 @@ namespace Garmusic.Repositories
 
             var files = await listRequest.ExecuteAsync();
 
-            _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsGD(accountId, files.Files));
+            if (_env.IsDevelopment())
+            {
+                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsGD(accountId, files.Files));
+            }
+            else
+            {
+                await UpdateSongsGD(accountId, files.Files);
+            }
         }
         private async Task UpdateJsonData(int accountId, DropboxJson json)
         {

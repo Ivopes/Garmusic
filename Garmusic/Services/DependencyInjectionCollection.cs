@@ -32,6 +32,7 @@ namespace Garmusic.Services
             services.AddTransient<IDataStore, GoogleDriveDataStore>();
 
             services.AddHostedService<BackgroundWorker>();
+
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
             return services;

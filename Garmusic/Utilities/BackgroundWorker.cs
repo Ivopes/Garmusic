@@ -1,4 +1,5 @@
 ﻿using Garmusic.Interfaces.Utilities;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,14 +14,20 @@ namespace Garmusic.Utilities
     {
         public IBackgroundTaskQueue TaskQueue { get; }
         private readonly ILogger<BackgroundWorker> _logger;
-
-        public BackgroundWorker(IBackgroundTaskQueue taskQueue, ILogger<BackgroundWorker> logger)
+        private readonly IWebHostEnvironment _env;
+        public BackgroundWorker(IBackgroundTaskQueue taskQueue, ILogger<BackgroundWorker> logger, IWebHostEnvironment env)
         {
             TaskQueue = taskQueue;
             _logger = logger;
+            _env = env;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            if (!_env.IsDevelopment())
+            {
+                return;
+            }
+
             _logger.LogInformation("Queued Hosted Service is running.");
 
             await BackgroundProcessing(stoppingToken);
