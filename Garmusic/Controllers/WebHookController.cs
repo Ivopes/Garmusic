@@ -63,5 +63,15 @@ namespace Garmusic.Controllers
 
             return Ok();
         }
+        [HttpPost("GoogleDrive")]
+        public async Task<ActionResult<NotificationRequest>> GoogleDrive()
+        {
+            // Check uuid
+
+            string body = await ResponseUtility.BodyStreamToStringAsync(Request.Body, (int)Request.ContentLength);
+
+
+            return Ok();
+        }
     }
 }

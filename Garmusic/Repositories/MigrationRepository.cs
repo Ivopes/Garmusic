@@ -80,7 +80,7 @@ namespace Garmusic.Repositories
 
                 if (_env.IsDevelopment())
                 {
-                    _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(acc.AccountID, files.Entries, json.JwtToken));
+                    _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(acc.AccountID, files.Entries, json.JwtToken, true));
                 }
                 else
                 {
@@ -113,7 +113,7 @@ namespace Garmusic.Repositories
 
             if (_env.IsDevelopment())
             {
-                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(accountId, files.Entries, dbxJson.JwtToken));
+                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(accountId, files.Entries, dbxJson.JwtToken, true));
             }
             else
             {
@@ -160,6 +160,15 @@ namespace Garmusic.Repositories
             {
                 await UpdateSongsGD(accountId, files.Files);
             }
+
+            var request = service.Changes;
+            var token = await request.GetStartPageToken().ExecuteAsync();
+            var channel = new Channel();
+            channel.Type = "web_hook";
+            channel.Id = Guid.NewGuid().ToString();
+            channel.Address = "https://garmusic.azurewebsites.net/api/webhook/googledrive";
+            
+            var r = await service.Changes.Watch(channel, token.StartPageTokenValue).ExecuteAsync();
         }
         private async Task UpdateJsonData(int accountId, DropboxJson json)
         {
@@ -246,7 +255,7 @@ namespace Garmusic.Repositories
                 {
                     continue;
                 }
-                
+
                 // Check if alreaedy exists
                 var entity = await dbContext.Songs.SingleOrDefaultAsync(s => 
                 s.FileName == song.Name && 
