@@ -167,7 +167,7 @@ namespace Garmusic.Repositories
 
             entity.JsonData = JsonConvert.SerializeObject(json);
         }
-        private async Task UpdateSongsDBX(int accountId, IEnumerable<Metadata> files, string jwtToken)
+        private async Task UpdateSongsDBX(int accountId, IEnumerable<Metadata> files, string jwtToken, bool updateMetadata = false)
         {
             using var dbx = new DropboxClient(jwtToken);
             using var scope = _serviceScopeFactory.CreateScope();
@@ -201,12 +201,15 @@ namespace Garmusic.Repositories
                             StorageSongID = ((FileMetadata)song).Id
                         };
                     }
-                    var file = await dbx.Files.DownloadAsync(entity.StorageSongID);
 
-                    var stream = await file.GetContentAsStreamAsync();
-                    var mStream = new MemoryStream();
-                    await stream.CopyToAsync(mStream);
-                    MetadataUtility.FillMetadata(entity, mStream);
+                    if (updateMetadata)
+                    {
+                        var file = await dbx.Files.DownloadAsync(entity.StorageSongID);
+                        var stream = await file.GetContentAsStreamAsync();
+                        var mStream = new MemoryStream();
+                        await stream.CopyToAsync(mStream);
+                        MetadataUtility.FillMetadata(entity, mStream);
+                    }
 
                     await _dbContext.Songs.AddAsync(entity);
                 }
