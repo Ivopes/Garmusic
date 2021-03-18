@@ -190,14 +190,22 @@ namespace Garmusic.Controllers
 
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
+            try
+            {
+
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 GoogleClientSecrets.Load(stream).Secrets, 
                 Scopes, 
                 accountId.ToString(), 
                 CancellationToken.None,
                 _dataStore);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex);
+            }
 
-            await _migService.GoogleDriveMigrationAsync(accountId);
+            //await _migService.GoogleDriveMigrationAsync(accountId);
 
             return Ok();
         }
