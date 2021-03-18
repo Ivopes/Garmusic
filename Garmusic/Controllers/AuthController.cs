@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.AspNetCore.Authorization;
+using Google.Apis.Auth.AspNetCore3;
 
 namespace Garmusic.Controllers
 {
@@ -192,13 +193,12 @@ namespace Garmusic.Controllers
 
             try
             {
-
-            UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                GoogleClientSecrets.Load(stream).Secrets, 
-                Scopes, 
-                accountId.ToString(), 
-                CancellationToken.None,
-                _dataStore);
+                UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(stream).Secrets, 
+                    Scopes, 
+                    accountId.ToString(), 
+                    CancellationToken.None,
+                    _dataStore);
             }
             catch (Exception ex)
             {

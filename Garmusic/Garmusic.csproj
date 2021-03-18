@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Dropbox.Api" Version="5.5.0" />
+    <PackageReference Include="Google.Apis.Auth.AspNetCore3" Version="1.50.0" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.50.0.2229" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.0" />
