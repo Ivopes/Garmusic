@@ -26,6 +26,8 @@ namespace Garmusic.Repositories
         private readonly MusicPlayerContext _dbContext;
         private readonly IDataStore _GDdataStore;
 
+        private readonly string[] _gdScopes = { DriveService.Scope.Drive };
+
         public SongRepository(MusicPlayerContext context, IDataStore gDdataStore)
         {
             _dbContext = context;
@@ -71,13 +73,11 @@ namespace Garmusic.Repositories
                 }
                 case (int)StorageType.GoogleDrive:
                 {
-                    string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
-
                     using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
                     UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                         GoogleClientSecrets.Load(stream).Secrets,
-                        Scopes,
+                        _gdScopes,
                         accountID.ToString(),
                         CancellationToken.None,
                         _GDdataStore);
@@ -193,13 +193,11 @@ namespace Garmusic.Repositories
                     }
                 case (int)StorageType.GoogleDrive:
                     {
-                        string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
-
                         using var s = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
                         UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                             GoogleClientSecrets.Load(s).Secrets,
-                            Scopes,
+                            _gdScopes,
                             accountID.ToString(),
                             CancellationToken.None,
                             _GDdataStore);
@@ -265,13 +263,11 @@ namespace Garmusic.Repositories
 
             using var dbx = new DropboxClient(dbxJson.JwtToken);
 
-            string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
-
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                                 GoogleClientSecrets.Load(stream).Secrets,
-                                Scopes,
+                                _gdScopes,
                                 accountID.ToString(),
                                 CancellationToken.None,
                                 _GDdataStore);

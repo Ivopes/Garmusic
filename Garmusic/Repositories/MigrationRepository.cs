@@ -6,6 +6,7 @@ using Garmusic.Models;
 using Garmusic.Models.Entities;
 using Garmusic.Utilities;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
@@ -33,6 +34,8 @@ namespace Garmusic.Repositories
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IDataStore _GDdataStore;
         private readonly IWebHostEnvironment _env;
+
+        private readonly string[] _gdScopes = { DriveService.Scope.Drive };
 
         public MigrationRepository(MusicPlayerContext dbContext, IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IDataStore gDdataStore, IWebHostEnvironment env)
         {
@@ -129,17 +132,15 @@ namespace Garmusic.Repositories
                 return;
             }
 
-            string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
-
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
-
+            
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 GoogleClientSecrets.Load(stream).Secrets,
-                Scopes,
+                _gdScopes,
                 accountId.ToString(),
                 CancellationToken.None,
                 _GDdataStore);
-
+            
             using var service = new DriveService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
@@ -232,13 +233,12 @@ namespace Garmusic.Repositories
             var gdDataStore = scope.ServiceProvider.GetRequiredService<IDataStore>();
 
             var dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
-            string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
-
+            
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 GoogleClientSecrets.Load(stream).Secrets,
-                Scopes,
+                _gdScopes,
                 accountId.ToString(),
                 CancellationToken.None,
                 gdDataStore);

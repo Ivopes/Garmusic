@@ -2,6 +2,7 @@
 using Garmusic.Models.Entities;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Util.Store;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
@@ -15,12 +16,10 @@ namespace Garmusic.Utilities
     {
         private readonly MusicPlayerContext _dbContext;
         private readonly StorageType _storageType = StorageType.GoogleDrive;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public GoogleDriveDataStore(MusicPlayerContext dbContext, IServiceScopeFactory serviceScopeFactory)
+        public GoogleDriveDataStore(MusicPlayerContext dbContext)
         {
             _dbContext = dbContext;
-            _serviceScopeFactory = serviceScopeFactory;
         }
 
         public Task ClearAsync()
@@ -28,9 +27,18 @@ namespace Garmusic.Utilities
             throw new NotImplementedException();
         }
 
-        public Task DeleteAsync<T>(string key)
+        public async Task DeleteAsync<T>(string key)
         {
-            throw new NotImplementedException();
+            int accountID = int.Parse(key);
+
+            var entity = await _dbContext.AccountStorages.FindAsync(accountID, (int)_storageType);
+
+            if (entity is null)
+            {
+                return;
+            }
+
+            _dbContext.AccountStorages.Remove(entity);
         }
 
         public async Task<T> GetAsync<T>(string key)
@@ -43,7 +51,7 @@ namespace Garmusic.Utilities
             {
                 return default;
             }
-            
+
             var token = JsonConvert.DeserializeObject<TokenResponse>(entity.JsonData);
 
             return (T)Convert.ChangeType(token, typeof(T));
@@ -55,17 +63,28 @@ namespace Garmusic.Utilities
             {
                 throw new ArgumentException("Key must have a value");
             }
-
             string json = JsonConvert.SerializeObject(value);
 
-            AccountStorage accountStorage = new AccountStorage()
-            {
-                AccountID = int.Parse(key),
-                StorageID = (int)_storageType,
-                JsonData = json
-            };
+            int accountID = int.Parse(key);
 
-            await _dbContext.AccountStorages.AddAsync(accountStorage);
+            var entity = await _dbContext.AccountStorages.FindAsync(accountID, (int)_storageType);
+
+            if (entity is null)
+            {
+
+                AccountStorage accountStorage = new AccountStorage()
+                {
+                    AccountID = int.Parse(key),
+                    StorageID = (int)_storageType,
+                    JsonData = json
+                };
+
+                await _dbContext.AccountStorages.AddAsync(accountStorage);
+            }
+            else
+            {
+                entity.JsonData = json;
+            }
 
             await _dbContext.SaveChangesAsync();
         }

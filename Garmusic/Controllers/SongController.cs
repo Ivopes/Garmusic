@@ -79,7 +79,7 @@ namespace Garmusic.Controllers
             }
             catch(Exception ex)
             {
-                return BadRequest("Oops! Something went wrong, please try again later. File may already exists");
+                return BadRequest("Oops! Something went wrong, please try again later");
             }
 
             return Ok(song);

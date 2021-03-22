@@ -1,30 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
+﻿using System.Collections.Generic;
 using Garmusic.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using Garmusic.Utilities;
-using Garmusic.Services.Dependencies;
 using Garmusic.Interfaces.Services;
 using System.Threading.Tasks;
 using Garmusic.Models.Entities;
 using System.Net.Http;
-using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
-using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using Microsoft.AspNetCore.Authorization;
-using Google.Apis.Auth.AspNetCore3;
+using Google.Apis.Auth.OAuth2.Flows;
+using System.Threading;
+using System;
+using System.Web;
 
 namespace Garmusic.Controllers
 {
@@ -36,6 +27,8 @@ namespace Garmusic.Controllers
         private readonly IMigrationService _migService;
         private readonly IConfiguration _config;
         private readonly IDataStore _dataStore;
+            
+        private readonly string[] _gdScopes = { DriveService.Scope.Drive };
         public AuthController(IAuthService authService, IMigrationService migrationService, IConfiguration configuration, IDataStore dataStore)
         {
             _authService = authService;
@@ -176,9 +169,9 @@ namespace Garmusic.Controllers
 
             return Ok();
         }
-        [HttpGet("gd")]
+        [HttpGet("gd/url")]
         [Authorize]
-        public async Task<ActionResult> SignInGoogleDrive()
+        public async Task<ActionResult<string>> GetSignInGDUrl()
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 
@@ -187,25 +180,52 @@ namespace Garmusic.Controllers
                 return BadRequest();
             }
 
-            string[] Scopes = { DriveService.Scope.DriveReadonly, DriveService.Scope.Drive };
+            using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
+
+            IAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecretsStream = stream,
+                Scopes = _gdScopes,
+                DataStore = _dataStore
+            });
+
+            var request = flow.CreateAuthorizationCodeRequest(_config.GetValue<string>("GDRedirectURL"));
+
+            string url = request.Build().ToString();
+
+            return Ok(url);
+        }
+        [HttpGet("gd/{gdCode}")]
+        [Authorize]
+        public async Task<ActionResult> RegisterGoogleDrive(string gdCode)
+        {
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
 
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
-            try
+            IAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
             {
-                UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(stream).Secrets, 
-                    Scopes, 
-                    accountId.ToString(), 
-                    CancellationToken.None,
-                    _dataStore);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(ex);
-            }
+                ClientSecretsStream = stream,
+                Scopes = _gdScopes,
+                DataStore = _dataStore
+            });
 
-            //await _migService.GoogleDriveMigrationAsync(accountId);
+
+            string code = HttpUtility.UrlDecode(gdCode);
+
+            var response = await flow.ExchangeCodeForTokenAsync(
+                accountId.ToString(),
+                code,
+                _config.GetValue<string>("GDRedirectURL"),
+                CancellationToken.None
+                );
+
+            await _migService.GoogleDriveMigrationAsync(accountId);
 
             return Ok();
         }
