@@ -171,7 +171,7 @@ namespace Garmusic.Controllers
         }
         [HttpGet("gd/url")]
         [Authorize]
-        public async Task<ActionResult<string>> GetSignInGDUrl()
+        public ActionResult<string> GetSignInGDUrl()
         {
             int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
 

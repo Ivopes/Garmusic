@@ -206,6 +206,7 @@ namespace Garmusic.Repositories
                         entity = new Song()
                         {
                             AccountID = accountId,
+                            Name = song.Name[..song.Name.LastIndexOf('.')],
                             FileName = song.Name,
                             StorageID = (int)StorageType.Dropbox,
                             StorageSongID = ((FileMetadata)song).Id
