@@ -195,7 +195,7 @@ namespace Garmusic.Controllers
 
             return Ok(url);
         }
-        [HttpGet("gd/{gdCode}")]
+        [HttpGet("gd/code/{*gdCode}")]
         [Authorize]
         public async Task<ActionResult> RegisterGoogleDrive(string gdCode)
         {
@@ -215,12 +215,9 @@ namespace Garmusic.Controllers
                 DataStore = _dataStore
             });
 
-
-            string code = HttpUtility.UrlDecode(gdCode);
-
             var response = await flow.ExchangeCodeForTokenAsync(
                 accountId.ToString(),
-                code,
+                gdCode,
                 _config.GetValue<string>("GDRedirectURL"),
                 CancellationToken.None
                 );
