@@ -29,5 +29,10 @@ namespace Garmusic.Services.Dependencies
         {
             await _migRepo.GoogleDriveMigrationAsync(accountId);
         }
+
+        public async Task GoogleDriveWebhookMigrationAsync(string channelID)
+        {
+            await _migRepo.GoogleDriveWebhookMigrationAsync(channelID);
+        }
     }
 }

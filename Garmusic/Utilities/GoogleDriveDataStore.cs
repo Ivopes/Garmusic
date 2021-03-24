@@ -52,7 +52,9 @@ namespace Garmusic.Utilities
                 return default;
             }
 
-            var token = JsonConvert.DeserializeObject<TokenResponse>(entity.JsonData);
+            var json = JsonConvert.DeserializeObject<GoogleDriveJson>(entity.JsonData);
+
+            var token = JsonConvert.DeserializeObject<TokenResponse>(json.Token);
 
             return (T)Convert.ChangeType(token, typeof(T));
         }
@@ -65,25 +67,33 @@ namespace Garmusic.Utilities
             }
             string json = JsonConvert.SerializeObject(value);
 
+            GoogleDriveJson gdJson = new GoogleDriveJson()
+            {
+                Token = json
+            };
+
             int accountID = int.Parse(key);
 
             var entity = await _dbContext.AccountStorages.FindAsync(accountID, (int)_storageType);
 
+            string jsonData = JsonConvert.SerializeObject(gdJson);
+
             if (entity is null)
             {
+
 
                 AccountStorage accountStorage = new AccountStorage()
                 {
                     AccountID = int.Parse(key),
                     StorageID = (int)_storageType,
-                    JsonData = json
+                    JsonData = jsonData
                 };
 
                 await _dbContext.AccountStorages.AddAsync(accountStorage);
             }
             else
             {
-                entity.JsonData = json;
+                entity.JsonData = jsonData;
             }
 
             await _dbContext.SaveChangesAsync();

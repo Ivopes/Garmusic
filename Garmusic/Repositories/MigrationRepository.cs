@@ -116,7 +116,7 @@ namespace Garmusic.Repositories
 
             if (_env.IsDevelopment())
             {
-                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(accountId, files.Entries, dbxJson.JwtToken, true));
+                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsDBX(accountId, files.Entries, dbxJson.JwtToken));
             }
             else
             {
@@ -150,26 +150,35 @@ namespace Garmusic.Repositories
             FilesResource.ListRequest listRequest = service.Files.List();
 
             listRequest.Q = "mimeType='audio/mpeg'";
-
+            
             var files = await listRequest.ExecuteAsync();
-
+            
             if (_env.IsDevelopment())
             {
-                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsGD(accountId, files.Files));
+                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsGD(accountId, files.Files, true));
             }
             else
             {
                 await UpdateSongsGD(accountId, files.Files);
             }
 
-            var request = service.Changes;
-            var token = await request.GetStartPageToken().ExecuteAsync();
-            var channel = new Channel();
-            channel.Type = "web_hook";
-            channel.Id = Guid.NewGuid().ToString();
-            channel.Address = "https://garmusic.azurewebsites.net/api/webhook/googledrive";
-            
-            var r = await service.Changes.Watch(channel, token.StartPageTokenValue).ExecuteAsync();
+            var token = await service.Changes.GetStartPageToken().ExecuteAsync();
+            var channel = new Channel
+            {
+                Type = "web_hook",
+                Id = Guid.NewGuid().ToString(),
+                Address = "https://garmusic.azurewebsites.net/api/webhook/googledrive"
+            };
+
+            await service.Changes.Watch(channel, token.StartPageTokenValue).ExecuteAsync();
+
+            var gdData = JsonConvert.DeserializeObject<GoogleDriveJson>(entity.JsonData);
+
+            gdData.ChannelId = channel.Id;
+
+            gdData.StartPageToken = token.StartPageTokenValue;
+
+            await _dbContext.SaveChangesAsync();
         }
         private async Task UpdateJsonData(int accountId, DropboxJson json)
         {
@@ -199,7 +208,13 @@ namespace Garmusic.Repositories
                 else
                 {
                     // Check if alreaedy exists
-                    var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => s.FileName == song.Name && s.AccountID == accountId && s.StorageID == (int)StorageType.Dropbox);
+                    var entity = await _dbContext.Songs.SingleOrDefaultAsync(
+                        s => s.FileName == song.Name && 
+                        s.AccountID == accountId && 
+                        s.StorageID == (int)StorageType.Dropbox
+                        );
+
+                    bool alreadyIn = true;
 
                     if (entity is null)
                     {
@@ -211,6 +226,7 @@ namespace Garmusic.Repositories
                             StorageID = (int)StorageType.Dropbox,
                             StorageSongID = ((FileMetadata)song).Id
                         };
+                        alreadyIn = false;
                     }
 
                     if (updateMetadata)
@@ -222,18 +238,21 @@ namespace Garmusic.Repositories
                         MetadataUtility.FillMetadata(entity, mStream);
                     }
 
-                    await _dbContext.Songs.AddAsync(entity);
+                    if (!alreadyIn)
+                    {
+                        await _dbContext.Songs.AddAsync(entity);
+                    }
                 }
             }
             await _dbContext.SaveChangesAsync();
         }
-        private async Task UpdateSongsGD(int accountId, IList<Google.Apis.Drive.v3.Data.File> files)
+        private async Task UpdateSongsGD(int accountId, IList<Google.Apis.Drive.v3.Data.File> files, bool updateMetadata = false)
         {
             using var scope = _serviceScopeFactory.CreateScope();
 
             var gdDataStore = scope.ServiceProvider.GetRequiredService<IDataStore>();
 
-            var dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
+            var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
             
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
@@ -258,11 +277,12 @@ namespace Garmusic.Repositories
                 }
 
                 // Check if alreaedy exists
-                var entity = await dbContext.Songs.SingleOrDefaultAsync(s => 
-                s.FileName == song.Name && 
-                s.AccountID == accountId && 
-                s.StorageID == (int)StorageType.GoogleDrive);
+                var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => 
+                    s.FileName == song.Name && 
+                    s.AccountID == accountId && 
+                    s.StorageID == (int)StorageType.GoogleDrive);
 
+                bool alreadyIn = true;
                 if (entity is null)
                 {
                     entity = new Song()
@@ -272,16 +292,142 @@ namespace Garmusic.Repositories
                         StorageID = (int)StorageType.GoogleDrive,
                         StorageSongID = song.Id
                     };
+                    alreadyIn = false;
                 }
-                using var mStream = new MemoryStream();
+                if (updateMetadata)
+                {
+                    using var mStream = new MemoryStream();
 
-                await gdService.Files.Get(song.Id).DownloadAsync(mStream);
+                    await gdService.Files.Get(song.Id).DownloadAsync(mStream);
               
-                MetadataUtility.FillMetadata(entity, mStream);
-
-                await dbContext.Songs.AddAsync(entity);
+                    MetadataUtility.FillMetadata(entity, mStream);
+                }
+                if (!alreadyIn)
+                {
+                    await _dbContext.Songs.AddAsync(entity);
+                }
             }
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
+        }
+        private async Task UpdateSongsGDWebhook(int accountId, IList<Change> files, bool updateMetadata = false)
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+
+            var gdDataStore = scope.ServiceProvider.GetRequiredService<IDataStore>();
+
+            var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
+
+            using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
+
+            UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                GoogleClientSecrets.Load(stream).Secrets,
+                _gdScopes,
+                accountId.ToString(),
+                CancellationToken.None,
+                gdDataStore);
+
+            using var gdService = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "Garmusic",
+            });
+
+            foreach (var song in files)
+            {
+                if (!song.File.Name.EndsWith(".mp3"))
+                {
+                    continue;
+                }
+
+                var entity = await _dbContext.Songs.SingleOrDefaultAsync(s =>
+                        s.FileName == song.File.Name &&
+                        s.AccountID == accountId &&
+                        s.StorageID == (int)StorageType.GoogleDrive);
+
+                if (song.Removed == true)
+                {
+                    if (entity is not null)
+                    {
+                        _dbContext.Songs.Remove(entity);
+                    }
+                }
+                else
+                {
+                    bool alreadyIn = true;
+                    if (entity is null)
+                    {
+                        entity = new Song()
+                        {
+                            AccountID = accountId,
+                            FileName = song.File.Name,
+                            StorageID = (int)StorageType.GoogleDrive,
+                            StorageSongID = song.FileId
+                        };
+                        alreadyIn = false;
+                    }
+                    if (updateMetadata)
+                    {
+                        using var mStream = new MemoryStream();
+
+                        await gdService.Files.Get(song.FileId).DownloadAsync(mStream);
+
+                        MetadataUtility.FillMetadata(entity, mStream);
+                    }
+                    if (!alreadyIn)
+                    {
+                        await _dbContext.Songs.AddAsync(entity);
+                    }
+                }
+            }
+            await _dbContext.SaveChangesAsync();
+        }
+        public async Task GoogleDriveWebhookMigrationAsync(string channelID)
+        {
+            var entity = await _dbContext.AccountStorages.SingleOrDefaultAsync(a => a.StorageID == (int)StorageType.GoogleDrive && a.JsonData.Contains(channelID));
+
+            using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
+
+            UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                GoogleClientSecrets.Load(stream).Secrets,
+                _gdScopes,
+                entity.AccountID.ToString(),
+                CancellationToken.None,
+                _GDdataStore
+                );
+
+            using var service = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "Garmusic"
+            });
+
+            GoogleDriveJson json = JsonConvert.DeserializeObject<GoogleDriveJson>(entity.JsonData);
+
+            var changesRequest = service.Changes.List(json.StartPageToken);
+
+            changesRequest.RestrictToMyDrive = true;
+            changesRequest.IncludeItemsFromAllDrives = false;
+            changesRequest.IncludeRemoved = true;
+            changesRequest.SupportsAllDrives = false;
+
+            var changeList = await changesRequest.ExecuteAsync();
+
+            await UpdateSongsGDWebhook(entity.AccountID, changeList.Changes);
+
+            if (_env.IsDevelopment())
+            {
+                _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsGDWebhook(entity.AccountID, changeList.Changes, true));
+            }
+            else
+            {
+                await UpdateSongsGDWebhook(entity.AccountID, changeList.Changes);
+            }
+
+            json.StartPageToken = changeList.NewStartPageToken;
+
+            entity.JsonData = JsonConvert.SerializeObject(json);
+
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

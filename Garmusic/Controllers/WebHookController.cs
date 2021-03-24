@@ -68,10 +68,27 @@ namespace Garmusic.Controllers
         {
             // Check uuid
 
-            string body = await ResponseUtility.BodyStreamToStringAsync(Request.Body, (int)Request.ContentLength);
+            //string body = await ResponseUtility.BodyStreamToStringAsync(Request.Body, (int)Request.ContentLength);
 
 
-            return Ok();
+            var number = Request.Headers["X-Goog-Message-Number"];
+
+            if (int.TryParse(number, out int res))
+            {
+                // Ignore Sync request
+                if (res == 1)
+                {
+                    return Ok();
+                }
+
+                var channelID = Request.Headers["X-Goog-Channel-ID"];
+
+                await _migService.GoogleDriveWebhookMigrationAsync(channelID.ToString());
+
+                return Ok();
+            }
+
+            return BadRequest();
         }
     }
 }
