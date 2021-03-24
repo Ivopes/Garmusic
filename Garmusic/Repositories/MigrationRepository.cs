@@ -178,6 +178,8 @@ namespace Garmusic.Repositories
 
             gdData.StartPageToken = token.StartPageTokenValue;
 
+            entity.JsonData = JsonConvert.SerializeObject(gdData);
+
             await _dbContext.SaveChangesAsync();
         }
         private async Task UpdateJsonData(int accountId, DropboxJson json)
