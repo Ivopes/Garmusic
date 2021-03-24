@@ -11,5 +11,6 @@ namespace Garmusic.Interfaces.Services
         Task DropboxWebhookMigrationAsync(IEnumerable<string> storageAccountsIDs);
         Task DropboxMigrationAsync(int accountId);
         Task GoogleDriveMigrationAsync(int accountId);
+        Task GoogleDriveWebhookMigrationAsync(string channelID);
     }
 }
