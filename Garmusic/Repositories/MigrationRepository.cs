@@ -291,6 +291,7 @@ namespace Garmusic.Repositories
                     {
                         AccountID = accountId,
                         FileName = song.Name,
+                        Name = song.Name[..song.Name.LastIndexOf('.')],
                         StorageID = (int)StorageType.GoogleDrive,
                         StorageSongID = song.Id
                     };
@@ -336,13 +337,8 @@ namespace Garmusic.Repositories
 
             foreach (var song in files)
             {
-                if (!song.File.Name.EndsWith(".mp3"))
-                {
-                    continue;
-                }
-
                 var entity = await _dbContext.Songs.SingleOrDefaultAsync(s =>
-                        s.FileName == song.File.Name &&
+                        s.StorageSongID == song.FileId &&
                         s.AccountID == accountId &&
                         s.StorageID == (int)StorageType.GoogleDrive);
 
@@ -353,7 +349,7 @@ namespace Garmusic.Repositories
                         _dbContext.Songs.Remove(entity);
                     }
                 }
-                else
+                else if (song.File.Name.EndsWith(".mp3"))
                 {
                     bool alreadyIn = true;
                     if (entity is null)
@@ -362,6 +358,7 @@ namespace Garmusic.Repositories
                         {
                             AccountID = accountId,
                             FileName = song.File.Name,
+                            Name = song.File.Name[..song.File.Name.LastIndexOf('.')],
                             StorageID = (int)StorageType.GoogleDrive,
                             StorageSongID = song.FileId
                         };
