@@ -366,6 +366,11 @@ namespace Garmusic.Repositories
         {
             var entity = await _dbContext.AccountStorages.SingleOrDefaultAsync(a => a.StorageID == (int)StorageType.GoogleDrive && a.JsonData.Contains(channelID));
 
+            if (entity is null)
+            {
+                return;
+            }
+
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(

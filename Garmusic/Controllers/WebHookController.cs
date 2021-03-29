@@ -84,17 +84,7 @@ namespace Garmusic.Controllers
 
                 var channelID = Request.Headers["X-Goog-Channel-ID"];
 
-                try
-                {
-
-                    await _migService.GoogleDriveWebhookMigrationAsync(channelID.ToString());
-                }
-                catch(Exception ex)
-                {
-                    Trace.WriteLine(ex.Message);
-                    Trace.WriteLine(ex.InnerException);
-                    //Trace.WriteLine(ex.)
-                }
+                await _migService.GoogleDriveWebhookMigrationAsync(channelID.ToString());
 
                 return Ok();
             }
