@@ -71,12 +71,12 @@ namespace Garmusic.Interfaces.Services
         /// <returns></returns>
         Task DeleteRangeAsync(List<int> sIDs, int accountID);
         /// <summary>
-        /// Get file from dbx
+        /// Get file from storage
         /// </summary>
         /// <param name="sID">Song ID to get</param>
         /// <param name="accountID">Account ID to which is Song linked</param>
         /// <returns>File content</returns>
-        Task<byte[]> GetDbxFileByIdAsync(int sID, int accountID);
+        Task<byte[]> GetFileByIdAsync(int sID, int accountID);
         /// <summary>
         /// Is Song and Playlist linked with Account?
         /// </summary>

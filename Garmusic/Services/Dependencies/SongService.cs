@@ -49,9 +49,9 @@ namespace Garmusic.Services.Dependencies
             await _songRepo.DeleteAsync(sID, accountID);
         }
 
-        public async Task<byte[]> GetDbxFileByIdAsync(int sID, int accountID)
+        public async Task<byte[]> GetFileByIdAsync(int sID, int accountID)
         {
-            return await _songRepo.GetDbxFileByIdAsync(sID, accountID);
+            return await _songRepo.GetFileByIdAsync(sID, accountID);
         }
 
         public async Task<IEnumerable<SongWatch>> GetAllWatchAsync(int accountID)

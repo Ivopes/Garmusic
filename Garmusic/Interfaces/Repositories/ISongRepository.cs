@@ -76,7 +76,7 @@ namespace Garmusic.Interfaces.Repositories
         /// <param name="sID">Song ID to get</param>
         /// <param name="accountID">Account ID to which is Song linked</param>
         /// <returns>File content</returns>
-        Task<byte[]> GetDbxFileByIdAsync(int sID, int accountID);
+        Task<byte[]> GetFileByIdAsync(int sID, int accountID);
         /// <summary>
         /// Is Song and Playlist linked with Account?
         /// </summary>
