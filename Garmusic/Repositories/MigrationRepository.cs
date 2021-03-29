@@ -133,14 +133,14 @@ namespace Garmusic.Repositories
             }
 
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
-            
+
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 GoogleClientSecrets.Load(stream).Secrets,
                 _gdScopes,
                 accountId.ToString(),
                 CancellationToken.None,
                 _GDdataStore);
-            
+
             using var service = new DriveService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
@@ -150,9 +150,9 @@ namespace Garmusic.Repositories
             FilesResource.ListRequest listRequest = service.Files.List();
 
             listRequest.Q = "mimeType='audio/mpeg'";
-            
+
             var files = await listRequest.ExecuteAsync();
-            
+
             if (_env.IsDevelopment())
             {
                 _backgroundTaskQueue.EnqueueAsync(ct => UpdateSongsGD(accountId, files.Files, true));
@@ -162,25 +162,7 @@ namespace Garmusic.Repositories
                 await UpdateSongsGD(accountId, files.Files);
             }
 
-            var token = await service.Changes.GetStartPageToken().ExecuteAsync();
-            var channel = new Channel
-            {
-                Type = "web_hook",
-                Id = Guid.NewGuid().ToString(),
-                Address = "https://garmusic.azurewebsites.net/api/webhook/googledrive"
-            };
-
-            await service.Changes.Watch(channel, token.StartPageTokenValue).ExecuteAsync();
-
-            var gdData = JsonConvert.DeserializeObject<GoogleDriveJson>(entity.JsonData);
-
-            gdData.ChannelId = channel.Id;
-
-            gdData.StartPageToken = token.StartPageTokenValue;
-
-            entity.JsonData = JsonConvert.SerializeObject(gdData);
-
-            await _dbContext.SaveChangesAsync();
+            await RegisterOrRefreshGoogleDriveWebhook(accountId);
         }
         private async Task UpdateJsonData(int accountId, DropboxJson json)
         {
@@ -211,8 +193,8 @@ namespace Garmusic.Repositories
                 {
                     // Check if alreaedy exists
                     var entity = await _dbContext.Songs.SingleOrDefaultAsync(
-                        s => s.FileName == song.Name && 
-                        s.AccountID == accountId && 
+                        s => s.FileName == song.Name &&
+                        s.AccountID == accountId &&
                         s.StorageID == (int)StorageType.Dropbox
                         );
 
@@ -255,7 +237,7 @@ namespace Garmusic.Repositories
             var gdDataStore = scope.ServiceProvider.GetRequiredService<IDataStore>();
 
             var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
-            
+
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
@@ -279,9 +261,9 @@ namespace Garmusic.Repositories
                 }
 
                 // Check if alreaedy exists
-                var entity = await _dbContext.Songs.SingleOrDefaultAsync(s => 
-                    s.FileName == song.Name && 
-                    s.AccountID == accountId && 
+                var entity = await _dbContext.Songs.SingleOrDefaultAsync(s =>
+                    s.FileName == song.Name &&
+                    s.AccountID == accountId &&
                     s.StorageID == (int)StorageType.GoogleDrive);
 
                 bool alreadyIn = true;
@@ -302,7 +284,7 @@ namespace Garmusic.Repositories
                     using var mStream = new MemoryStream();
 
                     await gdService.Files.Get(song.Id).DownloadAsync(mStream);
-              
+
                     MetadataUtility.FillMetadata(entity, mStream);
                 }
                 if (!alreadyIn)
@@ -425,6 +407,62 @@ namespace Garmusic.Repositories
             json.StartPageToken = changeList.NewStartPageToken;
 
             entity.JsonData = JsonConvert.SerializeObject(json);
+
+            await _dbContext.SaveChangesAsync();
+
+            await RegisterOrRefreshGoogleDriveWebhook(entity.AccountID);
+        }
+        public async Task RegisterOrRefreshGoogleDriveWebhook(int accountID)
+        {
+            AccountStorage entity = await _dbContext.AccountStorages.FindAsync(accountID, (int)StorageType.GoogleDrive);
+
+            using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
+
+            UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                GoogleClientSecrets.Load(stream).Secrets,
+                _gdScopes,
+                entity.AccountID.ToString(),
+                CancellationToken.None,
+                _GDdataStore
+                );
+
+            using var service = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "Garmusic"
+            });
+
+            var gdData = JsonConvert.DeserializeObject<GoogleDriveJson>(entity.JsonData);
+            string token = String.Empty;
+            var channel = new Channel
+            {
+                Type = "web_hook",
+                Address = "https://garmusic.azurewebsites.net/api/webhook/googledrive"
+            };
+            if (!string.IsNullOrEmpty(gdData.ChannelId) && !string.IsNullOrEmpty(gdData.StartPageToken) && !string.IsNullOrEmpty(gdData.ResourceId))
+            {
+                token = gdData.StartPageToken;
+                channel.Id = gdData.ChannelId;
+                channel.ResourceId = gdData.ResourceId;
+                // Stop watch
+                await service.Channels.Stop(channel).ExecuteAsync();
+            }
+            else
+            {
+                token = (await service.Changes.GetStartPageToken().ExecuteAsync()).StartPageTokenValue;
+                channel.Id = Guid.NewGuid().ToString();
+            }
+            // set expiration to one day (max expiration by google docs)
+            channel.Expiration = DateTimeOffset.Now.AddDays(1).ToUnixTimeMilliseconds();
+
+            var result = await service.Changes.Watch(channel, token).ExecuteAsync();
+
+
+            gdData.ChannelId = result.Id;
+            gdData.ResourceId = result.ResourceId;
+            gdData.StartPageToken = token;
+
+            entity.JsonData = JsonConvert.SerializeObject(gdData);
 
             await _dbContext.SaveChangesAsync();
         }

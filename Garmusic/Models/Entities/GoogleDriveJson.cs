@@ -12,5 +12,6 @@ namespace Garmusic.Models.Entities
         public string Token { get; set; }
         public string StartPageToken { get; set; }
         public string ChannelId { get; set; }
+        public string ResourceId { get; set; }
     }
 }

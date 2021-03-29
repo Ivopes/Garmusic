@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -83,7 +84,17 @@ namespace Garmusic.Controllers
 
                 var channelID = Request.Headers["X-Goog-Channel-ID"];
 
-                await _migService.GoogleDriveWebhookMigrationAsync(channelID.ToString());
+                try
+                {
+
+                    await _migService.GoogleDriveWebhookMigrationAsync(channelID.ToString());
+                }
+                catch(Exception ex)
+                {
+                    Trace.WriteLine(ex.Message);
+                    Trace.WriteLine(ex.InnerException);
+                    //Trace.WriteLine(ex.)
+                }
 
                 return Ok();
             }
