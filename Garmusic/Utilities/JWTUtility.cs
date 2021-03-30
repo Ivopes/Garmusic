@@ -25,5 +25,22 @@ namespace Garmusic.Utilities
             }
             return accountId;
         }
+        public static int GetIdFromToken(string token)
+        {
+            int accountId = -1;
+          
+            try
+            {
+                var t = new JwtSecurityTokenHandler().ReadJwtToken(token);
+                var claims = t.Payload.Claims;
+                accountId = int.Parse(claims.FirstOrDefault(b => b.Type == "uid").Value);
+            }
+            catch(Exception ex)
+            {
+                return -1;
+            }
+            
+            return accountId;
+        }
     }
 }

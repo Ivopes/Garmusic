@@ -51,6 +51,10 @@ namespace Garmusic.Controllers
                 return Unauthorized();
             }
 
+            int accoundId = JWTUtility.GetIdFromToken(jwtToken);
+
+            await _migService.RegisterOrRefreshGoogleDriveWebhook(accoundId);
+
             return Ok(new { token = jwtToken });
         }
         [HttpPost("Login/Watch")]
@@ -61,7 +65,7 @@ namespace Garmusic.Controllers
                 return BadRequest("Invalid client request");
             }
 
-            string jwtToken = await _authService.LoginAsync(account);
+            string jwtToken = await _authService.LoginWatchAsync(account);
 
             if (jwtToken == string.Empty)
             {
