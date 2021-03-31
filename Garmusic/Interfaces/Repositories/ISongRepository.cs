@@ -64,14 +64,14 @@ namespace Garmusic.Interfaces.Repositories
         /// <returns></returns>
         Task DeleteAsync(int sID, int accountID);
         /// <summary>
-        /// Deletes files from dbx
+        /// Deletes files from storage
         /// </summary>
         /// <param name="sIDs">Songs IDs to delete</param>
         /// <param name="accountID">Account ID to which is Song linked</param>
         /// <returns></returns>
         Task DeleteRangeAsync(List<int> sIDs, int accountID);
         /// <summary>
-        /// Get file from dbx
+        /// Get file from storage
         /// </summary>
         /// <param name="sID">Song ID to get</param>
         /// <param name="accountID">Account ID to which is Song linked</param>

@@ -312,11 +312,17 @@ namespace Garmusic.Repositories
                 HttpClientInitializer = credential,
                 ApplicationName = "Garmusic",
             });
-
+            var entities = new List<Song>();
             foreach (var sID in sIDs)
             {
                 var entity = await _dbContext.Songs.FindAsync(sID);
+                entities.Add(entity);
                 _dbContext.Songs.Remove(entity);
+            }
+            await SaveAsync();
+            foreach (var sID in sIDs)
+            {
+                var entity = entities.Find(s => s.Id == sID);
                 switch (entity.StorageID)
                 {
                     case (int)StorageType.Dropbox:
@@ -331,11 +337,11 @@ namespace Garmusic.Repositories
                         }
                 }
             }
-            var files = await dbx.Files.ListFolderAsync(string.Empty);
+            /*var files = await dbx.Files.ListFolderAsync(string.Empty);
             dbxJson.Cursor = files.Cursor;
             accountStorage.JsonData = JsonConvert.SerializeObject(dbxJson);
 
-            await SaveAsync();
+            await SaveAsync();*/
         }
         public async Task<bool> CanModifyAsync(int accountID, int sID)
         {

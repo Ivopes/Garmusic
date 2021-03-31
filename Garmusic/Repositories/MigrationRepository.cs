@@ -75,7 +75,7 @@ namespace Garmusic.Repositories
 
                 json.Cursor = files.Cursor;
 
-                await UpdateJsonData(acc.AccountID, json);
+                await UpdateDbxJsonData(acc.AccountID, json);
 
                 //await UpdateSongs(acc.AccountID, files.Entries);
 
@@ -108,7 +108,7 @@ namespace Garmusic.Repositories
 
             dbxJson.Cursor = files.Cursor;
 
-            await UpdateJsonData(accountId, dbxJson);
+            await UpdateDbxJsonData(accountId, dbxJson);
 
             //await UpdateSongs(accountId, files.Entries);
 
@@ -164,7 +164,7 @@ namespace Garmusic.Repositories
 
             await RegisterOrRefreshGoogleDriveWebhook(accountId);
         }
-        private async Task UpdateJsonData(int accountId, DropboxJson json)
+        private async Task UpdateDbxJsonData(int accountId, DropboxJson json)
         {
             var entity = await _dbContext.AccountStorages.FindAsync(accountId, (int)StorageType.Dropbox);
 
@@ -174,7 +174,7 @@ namespace Garmusic.Repositories
         {
             using var dbx = new DropboxClient(jwtToken);
             using var scope = _serviceScopeFactory.CreateScope();
-            var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
+            using var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
             foreach (var song in files)
             {
                 if (!song.Name.EndsWith(".mp3"))
@@ -236,7 +236,7 @@ namespace Garmusic.Repositories
 
             var gdDataStore = scope.ServiceProvider.GetRequiredService<IDataStore>();
 
-            var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
+            using var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
 
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
@@ -300,7 +300,7 @@ namespace Garmusic.Repositories
 
             var gdDataStore = scope.ServiceProvider.GetRequiredService<IDataStore>();
 
-            var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
+            using var _dbContext = scope.ServiceProvider.GetRequiredService<MusicPlayerContext>();
 
             using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
 
@@ -419,6 +419,7 @@ namespace Garmusic.Repositories
         }
         public async Task RegisterOrRefreshGoogleDriveWebhook(int accountID)
         {
+            return;
             AccountStorage entity = await _dbContext.AccountStorages.FindAsync(accountID, (int)StorageType.GoogleDrive);
 
             if (entity is null)
