@@ -50,6 +50,8 @@ namespace Garmusic.Repositories
 
             _dbContext.Songs.Remove(entity);
 
+            await SaveAsync();
+
             switch (entity.StorageID)
             {
                 case (int)StorageType.Dropbox:

@@ -419,7 +419,6 @@ namespace Garmusic.Repositories
         }
         public async Task RegisterOrRefreshGoogleDriveWebhook(int accountID)
         {
-            return;
             AccountStorage entity = await _dbContext.AccountStorages.FindAsync(accountID, (int)StorageType.GoogleDrive);
 
             if (entity is null)
