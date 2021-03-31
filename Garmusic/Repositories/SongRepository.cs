@@ -94,12 +94,10 @@ namespace Garmusic.Repositories
             }
             await SaveAsync();
         }
-
         public async Task<IEnumerable<Song>> GetAllAsync(int accountID)
         {
             return await _dbContext.Songs.Where(s => s.AccountID == accountID).Include(s => s.Playlists).ToListAsync();
         }
-
         public async Task<IEnumerable<SongWatch>> GetAllWatchAsync(int accountID)
         {
             var songs = await GetAllAsync(accountID);
@@ -117,12 +115,10 @@ namespace Garmusic.Repositories
 
             return sw;
         }
-
         public async Task<Song> GetByIdAsync(int sID)
         {
             return await _dbContext.Songs.FindAsync(sID);
         }
-
         public async Task<byte[]> GetFileByIdAsync(int sID, int accountID)
         {
             var entity = await _dbContext.Songs.FindAsync(sID);
@@ -292,7 +288,7 @@ namespace Garmusic.Repositories
         }
         public async Task DeleteRangeAsync(List<int> sIDs, int accountID)
         {
-            var accountStorage = _dbContext.AccountStorages.Find(accountID, (int)StorageType.Dropbox);
+            /*var accountStorage = await _dbContext.AccountStorages.FindAsync(accountID, (int)StorageType.Dropbox);
 
             DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
 
@@ -336,12 +332,17 @@ namespace Garmusic.Repositories
                             break;
                         }
                 }
-            }
+            }*/
             /*var files = await dbx.Files.ListFolderAsync(string.Empty);
             dbxJson.Cursor = files.Cursor;
             accountStorage.JsonData = JsonConvert.SerializeObject(dbxJson);
 
             await SaveAsync();*/
+
+            foreach (var sID in sIDs)
+            {
+                await DeleteAsync(sID, accountID);
+            }
         }
         public async Task<bool> CanModifyAsync(int accountID, int sID)
         {
