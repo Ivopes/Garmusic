@@ -454,8 +454,12 @@ namespace Garmusic.Repositories
                 token = gdData.StartPageToken;
                 channel.Id = gdData.ChannelId;
                 channel.ResourceId = gdData.ResourceId;
-                // Stop watch
-                await service.Channels.Stop(channel).ExecuteAsync();
+                try
+                {
+                    // Stop watch
+                    await service.Channels.Stop(channel).ExecuteAsync();
+                }
+                catch (Exception) { }
             }
             else
             {

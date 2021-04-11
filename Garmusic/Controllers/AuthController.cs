@@ -53,7 +53,14 @@ namespace Garmusic.Controllers
 
             int accoundId = JWTUtility.GetIdFromToken(jwtToken);
 
-            await _migService.RegisterOrRefreshGoogleDriveWebhook(accoundId);
+            try
+            {
+                await _migService.RegisterOrRefreshGoogleDriveWebhook(accoundId);
+            }
+            catch(Exception)
+            {
+
+            }
 
             return Ok(new { token = jwtToken });
         }
