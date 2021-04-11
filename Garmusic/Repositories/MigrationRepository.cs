@@ -208,7 +208,8 @@ namespace Garmusic.Repositories
                             Name = song.Name[..song.Name.LastIndexOf('.')],
                             FileName = song.Name,
                             StorageID = (int)StorageType.Dropbox,
-                            StorageSongID = ((FileMetadata)song).Id
+                            StorageSongID = ((FileMetadata)song).Id,
+                            Author = string.Empty
                         };
                         alreadyIn = false;
                     }
@@ -275,7 +276,8 @@ namespace Garmusic.Repositories
                         FileName = song.Name,
                         Name = song.Name[..song.Name.LastIndexOf('.')],
                         StorageID = (int)StorageType.GoogleDrive,
-                        StorageSongID = song.Id
+                        StorageSongID = song.Id,
+                        Author = string.Empty
                     };
                     alreadyIn = false;
                 }
