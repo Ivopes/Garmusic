@@ -41,6 +41,11 @@ namespace Garmusic.Services.Dependencies
             await _playlistRepository.PostAsync(playlist);
         }
 
+        public async Task PutAsync(Playlist playlist)
+        {
+            await _playlistRepository.PutAsync(playlist);
+        }
+
         public async Task RemoveAsync(int pID)
         {
             await _playlistRepository.RemoveAsync(pID);

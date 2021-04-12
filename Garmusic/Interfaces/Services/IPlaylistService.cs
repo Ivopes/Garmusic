@@ -50,5 +50,6 @@ namespace Garmusic.Interfaces.Services
         /// <param name="pID">Playlists id</param>
         /// <returns></returns>
         Task RemoveAsync(int pID);
+        Task PutAsync(Playlist playlist);
     }
 }

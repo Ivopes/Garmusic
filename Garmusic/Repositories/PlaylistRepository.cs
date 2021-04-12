@@ -63,6 +63,16 @@ namespace Garmusic.Repositories
             await SaveAsync();
         }
 
+        public async Task PutAsync(Playlist playlist)
+        {
+            var entity = await _dbContext.Playlists.FindAsync(playlist.Id);
+
+            entity.Name = playlist.Name;
+            entity.Sync = playlist.Sync;
+
+            await SaveAsync();
+        }
+
         public async Task RemoveAsync(int pID)
         {
             var entity = await _dbContext.Playlists.FindAsync(pID);

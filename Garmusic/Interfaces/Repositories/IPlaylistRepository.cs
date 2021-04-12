@@ -33,6 +33,8 @@ namespace Garmusic.Interfaces.Repositories
         /// <param name="pID">Playlist ID from which take songs</param>
         /// <returns>List of Songs</returns>
         Task<IEnumerable<Song>> GetSongsByPlIdAsync(int pID);
+        Task PutAsync(Playlist playlist);
+
         /// <summary>
         /// Update information if Playlist should be synced to watch
         /// </summary>

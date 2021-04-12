@@ -87,6 +87,20 @@ namespace Garmusic.Controllers
             
             return Ok();
         }
+        [HttpPut]
+        public async Task<ActionResult> Put([FromBody] Playlist playlist)
+        {
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            await _playlistService.PutAsync(playlist);
+
+            return Ok();
+        }
         [HttpDelete("{pID}")]
         public async Task<ActionResult> DeleteAsync(int pID)
         {
