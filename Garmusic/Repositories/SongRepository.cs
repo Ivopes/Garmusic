@@ -357,5 +357,15 @@ namespace Garmusic.Repositories
 
             return song.AccountID == accountID;
         }
+
+        public async Task PutAsync(Song song)
+        {
+            var entity = await _dbContext.Songs.FindAsync(song.Id);
+
+            entity.Author = song.Author;
+            entity.Name = song.Name;
+
+            await SaveAsync();
+        }
     }
 }

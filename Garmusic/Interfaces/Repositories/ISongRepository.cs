@@ -56,6 +56,8 @@ namespace Garmusic.Interfaces.Repositories
         /// <param name="plID">Playlist ID</param>
         /// <returns></returns>
         Task RemovePlaylistAsync(int sID, int plID);
+        Task PutAsync(Song song);
+
         /// <summary>
         /// Deletes file from dbx
         /// </summary>

@@ -92,5 +92,6 @@ namespace Garmusic.Interfaces.Services
         /// <param name="sID">Song ID to check</param>
         /// <returns>Can user modify?</returns>
         Task<bool> CanModifyAsync(int accountID, int sID);
+        Task PutAsync(Song song);
     }
 }

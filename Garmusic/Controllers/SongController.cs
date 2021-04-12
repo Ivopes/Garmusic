@@ -182,5 +182,19 @@ namespace Garmusic.Controllers
 
             return Ok();
         }
+        [HttpPut]
+        public async Task<ActionResult> Put([FromBody] Song song)
+        {
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            await _songService.PutAsync(song);
+
+            return Ok();
+        }
     }
 }
