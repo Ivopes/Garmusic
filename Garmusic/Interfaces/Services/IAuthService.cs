@@ -54,5 +54,6 @@ namespace Garmusic.Interfaces.Services
         string GetDropboxKeys();
         Task SignOutDbx(int aID);
         Task SignOutGoogleDrive(int accountId);
+        Task ChangePassword(int accountID, string oldPass, string newPass);
     }
 }

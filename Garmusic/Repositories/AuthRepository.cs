@@ -2,6 +2,7 @@
 using Garmusic.Models;
 using Garmusic.Models.Entities;
 using Garmusic.Utilities;
+using Garmusic.Utilities.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -203,6 +204,32 @@ namespace Garmusic.Repositories
             _dbContext.RemoveRange(songs);
 
             await SaveAsync();
+        }
+
+        public async Task ChangePassword(int accountID, string oldPass, string newPass)
+        {
+            Account entity = await _dbContext.Accounts.FindAsync(accountID);
+
+            if (entity is null)
+            {
+                throw new NoAccountFoundException();
+            }
+            
+            byte[] passHash = PasswordUtility.HashPassword(oldPass, entity.PasswordSalt);
+
+            if (Enumerable.SequenceEqual(entity.PasswordHash, passHash))
+            {
+                entity.PasswordSalt = PasswordUtility.GenerateSalt();
+
+                entity.PasswordHash = PasswordUtility.HashPassword(newPass, entity.PasswordSalt);
+
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new InvalidPasswordException();
+            }
+
         }
     }
 }

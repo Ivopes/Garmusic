@@ -17,6 +17,11 @@ namespace Garmusic.Services.Dependencies
         {
             _authRepository = authRepository;
         }
+
+        public async Task ChangePassword(int accountID, string oldPass, string newPass)
+        {
+            await _authRepository.ChangePassword(accountID, oldPass, newPass);
+        }
         public async Task<string> GetDropboxJwtAsync(int accountId)
         {
             return await _authRepository.GetDropboxJwtAsync(accountId);

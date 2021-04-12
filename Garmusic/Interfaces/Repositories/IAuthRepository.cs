@@ -15,6 +15,8 @@ namespace Garmusic.Interfaces.Repositories
         /// <param name="account">Account with credential to check</param>
         /// <returns>JWT token as string, otherwise empty string</returns>
         Task<string> LoginAsync(Account account);
+        Task ChangePassword(int accountID, string oldPass, string newPass);
+
         /// <summary>
         /// Check Account credentials and return JWT token if correct with extend lifetime fo watch
         /// </summary>

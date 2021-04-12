@@ -16,6 +16,8 @@ using Google.Apis.Auth.OAuth2.Flows;
 using System.Threading;
 using System;
 using System.Web;
+using System.Text;
+using Garmusic.Utilities.Exceptions;
 
 namespace Garmusic.Controllers
 {
@@ -234,6 +236,32 @@ namespace Garmusic.Controllers
                 );
 
             await _migService.GoogleDriveMigrationAsync(accountId);
+
+            return Ok();
+        }
+        [HttpPost("password")]
+        [Authorize]
+        public async Task<ActionResult> ChangePassword([FromForm] string oldPass, [FromForm] string newPass)
+        {
+            int accountId = JWTUtility.GetIdFromRequestHeaders(Request.Headers);
+
+            if (accountId == -1)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                await _authService.ChangePassword(accountId, oldPass, newPass);
+            }
+            catch (InvalidPasswordException)
+            {
+                return BadRequest("Invalid password");
+            }
+            catch (Exception)
+            {
+                return BadRequest("Oops! Something went wrong, please try again later");
+            }
 
             return Ok();
         }
