@@ -23,7 +23,7 @@ namespace Garmusic.Utilities
 
             song.Name = track.Title != string.Empty ? track.Title : song.FileName[..song.FileName.LastIndexOf('.')];
             song.LengthSec = track.Duration;
-            song.Author = track.Artist;
+            song.Author = string.IsNullOrWhiteSpace(track.Artist) ? string.Empty : track.Artist;
         }
     }
 }
