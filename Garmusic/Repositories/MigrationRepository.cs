@@ -463,11 +463,10 @@ namespace Garmusic.Repositories
                 }
                 catch (Exception) { }
             }
-            else
-            {
-                token = (await service.Changes.GetStartPageToken().ExecuteAsync()).StartPageTokenValue;
-                channel.Id = Guid.NewGuid().ToString();
-            }
+            
+            token = (await service.Changes.GetStartPageToken().ExecuteAsync()).StartPageTokenValue;
+            channel.Id = Guid.NewGuid().ToString();
+            
             // set expiration to one day (max expiration by google docs)
             channel.Expiration = DateTimeOffset.Now.AddDays(1).ToUnixTimeMilliseconds();
 
