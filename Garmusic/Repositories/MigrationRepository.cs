@@ -344,7 +344,8 @@ namespace Garmusic.Repositories
                             FileName = song.File.Name,
                             Name = song.File.Name[..song.File.Name.LastIndexOf('.')],
                             StorageID = (int)StorageType.GoogleDrive,
-                            StorageSongID = song.FileId
+                            StorageSongID = song.FileId,
+                            Author = string.Empty
                         };
                         alreadyIn = false;
                     }
