@@ -477,6 +477,8 @@ namespace Garmusic.Repositories
             gdData.ChannelId = result.Id;
             gdData.ResourceId = result.ResourceId;
             gdData.StartPageToken = token;
+            // IDataStore updates token when its expired. The new token is saved in entity
+            gdData.Token = JsonConvert.DeserializeObject<GoogleDriveJson>(entity.JsonData).Token;
 
             entity.JsonData = JsonConvert.SerializeObject(gdData);
 

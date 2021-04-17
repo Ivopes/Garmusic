@@ -65,22 +65,21 @@ namespace Garmusic.Utilities
             {
                 throw new ArgumentException("Key must have a value");
             }
-            string json = JsonConvert.SerializeObject(value);
-
-            GoogleDriveJson gdJson = new GoogleDriveJson()
-            {
-                Token = json
-            };
-
+            
             int accountID = int.Parse(key);
 
             var entity = await _dbContext.AccountStorages.FindAsync(accountID, (int)_storageType);
 
-            string jsonData = JsonConvert.SerializeObject(gdJson);
-
             if (entity is null)
             {
+                string json = JsonConvert.SerializeObject(value);
 
+                GoogleDriveJson gdJson = new GoogleDriveJson()
+                {
+                    Token = json
+                };
+
+                string jsonData = JsonConvert.SerializeObject(gdJson);
 
                 AccountStorage accountStorage = new AccountStorage()
                 {
@@ -93,9 +92,15 @@ namespace Garmusic.Utilities
             }
             else
             {
+                var json = JsonConvert.DeserializeObject<GoogleDriveJson>(entity.JsonData);
+
+                json.Token = JsonConvert.SerializeObject(value);
+                
+                string jsonData = JsonConvert.SerializeObject(json);
+                
                 entity.JsonData = jsonData;
             }
-
+            
             await _dbContext.SaveChangesAsync();
         }
     }
