@@ -36,7 +36,6 @@ namespace Garmusic.Controllers
              {
                  return BadRequest();
              }
-            //int accountId = 1;
 
             var songs = await _songService.GetAllWatchAsync(accountId);
             var playlists = await _playlistService.GetAllWatchAsync(accountId);
@@ -59,7 +58,6 @@ namespace Garmusic.Controllers
             {
                 return BadRequest();
             }
-            //int accountId = 1;
 
             // Method cant handle parameter
             // This is a replacement

@@ -77,8 +77,6 @@ namespace Garmusic.Repositories
 
                 await UpdateDbxJsonData(acc.AccountID, json);
 
-                //await UpdateSongs(acc.AccountID, files.Entries);
-
                 await _dbContext.SaveChangesAsync();
 
                 if (_env.IsDevelopment())
@@ -109,8 +107,6 @@ namespace Garmusic.Repositories
             dbxJson.Cursor = files.Cursor;
 
             await UpdateDbxJsonData(accountId, dbxJson);
-
-            //await UpdateSongs(accountId, files.Entries);
 
             await _dbContext.SaveChangesAsync();
 

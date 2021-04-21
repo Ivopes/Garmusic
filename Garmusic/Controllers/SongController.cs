@@ -139,7 +139,6 @@ namespace Garmusic.Controllers
             {
                 return BadRequest();
             }
-            //accountId = 1;
             var result = await _songService.GetFileByIdAsync(id, accountId);
             
             return File(result, "audio/mpeg");

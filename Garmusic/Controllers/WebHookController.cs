@@ -67,11 +67,6 @@ namespace Garmusic.Controllers
         [HttpPost("GoogleDrive")]
         public async Task<ActionResult<NotificationRequest>> GoogleDrive()
         {
-            // Check uuid
-
-            //string body = await ResponseUtility.BodyStreamToStringAsync(Request.Body, (int)Request.ContentLength);
-
-
             var number = Request.Headers["X-Goog-Message-Number"];
 
             if (int.TryParse(number, out int res))

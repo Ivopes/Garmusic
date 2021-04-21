@@ -34,9 +34,6 @@ namespace Garmusic
         {
             services.AddDependency();
 
-            //IdentityModelEventSource.ShowPII = true;
-
-
             services.ConfigureJwt(Configuration);
 
             services.AddControllers().AddNewtonsoftJson(options => 

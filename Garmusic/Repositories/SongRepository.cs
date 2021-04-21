@@ -290,57 +290,6 @@ namespace Garmusic.Repositories
         }
         public async Task DeleteRangeAsync(List<int> sIDs, int accountID)
         {
-            /*var accountStorage = await _dbContext.AccountStorages.FindAsync(accountID, (int)StorageType.Dropbox);
-
-            DropboxJson dbxJson = JsonConvert.DeserializeObject<DropboxJson>(accountStorage.JsonData);
-
-            using var dbx = new DropboxClient(dbxJson.JwtToken);
-
-            using var stream = new FileStream("googleDriveSecrets.json", FileMode.Open, FileAccess.Read);
-
-            UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                                GoogleClientSecrets.Load(stream).Secrets,
-                                _gdScopes,
-                                accountID.ToString(),
-                                CancellationToken.None,
-                                _GDdataStore);
-
-            using var gdService = new DriveService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "Garmusic",
-            });
-            var entities = new List<Song>();
-            foreach (var sID in sIDs)
-            {
-                var entity = await _dbContext.Songs.FindAsync(sID);
-                entities.Add(entity);
-                _dbContext.Songs.Remove(entity);
-            }
-            await SaveAsync();
-            foreach (var sID in sIDs)
-            {
-                var entity = entities.Find(s => s.Id == sID);
-                switch (entity.StorageID)
-                {
-                    case (int)StorageType.Dropbox:
-                        {
-                            await dbx.Files.DeleteV2Async(entity.StorageSongID);
-                            break;
-                        }
-                    case (int)StorageType.GoogleDrive:
-                        {
-                            await gdService.Files.Delete(entity.StorageSongID).ExecuteAsync();
-                            break;
-                        }
-                }
-            }*/
-            /*var files = await dbx.Files.ListFolderAsync(string.Empty);
-            dbxJson.Cursor = files.Cursor;
-            accountStorage.JsonData = JsonConvert.SerializeObject(dbxJson);
-
-            await SaveAsync();*/
-
             foreach (var sID in sIDs)
             {
                 await DeleteAsync(sID, accountID);
