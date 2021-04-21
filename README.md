@@ -16,10 +16,16 @@ You can also check the app working [here](http://garmusic.azurewebsites.net/)
 1. Clone the repo 
 ```
 git clone https://github.com/Ivopes/Garmusic.git
-cd Garmusic\ClientApp
 ```
-2. Install npm packages
+2. Clone the submodules
+```
+cd Garmusic
+git submodule init
+git submodule update
+```
+3. Install npm packages
 ```sh
+cd Garmusic\ClientApp
 npm install
 ```
 
