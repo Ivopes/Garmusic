@@ -31,8 +31,9 @@ npm install
 
 ## Create the database
 1. Open SSMS
-2. Run CreateDatabase.sql script from Garmusic\Scripts
-3. Run InsertData.sql script Garmusic\Scripts
+2. Connect to database server
+3. Run CreateDatabase.sql script from Garmusic\Scripts
+4. Run InsertData.sql script Garmusic\Scripts
 
 ## Create a Dropbox app
 1. Visit the [Dropbox App Console](https://www.dropbox.com/developers/apps)
@@ -46,13 +47,16 @@ npm install
 "DropboxKey": "ENTER YOUR APP KEY",
 "DropboxSecret": "ENTER YOUR APP SECRET"
 ```
+7. Replace App key in src/environment.ts in ClientApp
+```csharp
+dropboxKey: 'ENTER YOUR APP KEY',
+```
 
 ## Create a Google Drive app
 1. Visit the [Google Guide](https://developers.google.com/workspace/guides/create-project)
 2. Create a Google app by the instructions
 3. Enable a Google Drive API to you app as described [here](https://developers.google.com/drive/api/v3/enable-drive-api)
-4. Create a Credentials as described [here](https://developers.google.com/workspace/guides/create-project).
-You may need to verify the angular app by adding metatag to index.html
+4. Create a Credentials as described [here](https://developers.google.com/workspace/guides/create-credentials).
 5. Add https://localhost:44303 to Authorized JavaScript origins.  
 Add folowing strings to Authorized redirect URIs:  
 https://127.0.0.1/gd,  
